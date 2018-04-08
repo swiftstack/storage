@@ -13,12 +13,12 @@ final class JsonCoder: StreamCoder, StreamAnyDecoder {
         case invalidFormat
     }
 
-    func withScopedDecoder<T>(
+    func read<T>(
         from reader: StreamReader,
-        _ body: (Swift.Decoder) throws -> T?) throws -> T?
+        _ body: () throws -> T?) throws -> T?
     {
         do {
-            let next = try JSON.withScopedDecoder(using: reader, body)
+            let next = try body()
             guard try reader.consume(.lf) else {
                 throw Error.invalidFormat
             }
@@ -29,8 +29,10 @@ final class JsonCoder: StreamCoder, StreamAnyDecoder {
     }
 
     func next<T: AnyDecodable>(from reader: StreamReader) throws -> T? {
-        return try withScopedDecoder(from: reader) { decoder in
-            return try T(from: decoder, typeAccessor: typeAccessor)
+        return try read(from: reader) {
+            return try JSON.withScopedDecoder(using: reader) { decoder in
+                return try T(from: decoder, typeAccessor: typeAccessor)
+            }
         }
     }
 
@@ -38,8 +40,8 @@ final class JsonCoder: StreamCoder, StreamAnyDecoder {
         _ type: T.Type,
         from reader: StreamReader) throws -> T?
     {
-        return try withScopedDecoder(from: reader) { decoder in
-            return try T(from: decoder)
+        return try read(from: reader) {
+            return try JSON.decode(type, from: reader)
         }
     }
 
@@ -47,15 +49,13 @@ final class JsonCoder: StreamCoder, StreamAnyDecoder {
         _ type: Decodable.Type,
         from reader: StreamReader) throws -> Decodable?
     {
-        return try withScopedDecoder(from: reader) { decoder in
-            try type.init(from: decoder)
+        return try read(from: reader) {
+            return try JSON.decode(decodable: type, from: reader)
         }
     }
 
     func write(_ record: Encodable, to writer: StreamWriter) throws {
-        try JSON.withScopedEncoder(using: writer) { encoder in
-            try record.encode(to: encoder)
-        }
+        try JSON.encode(encodable: record, to: writer)
         try writer.write(.lf)
     }
 }
