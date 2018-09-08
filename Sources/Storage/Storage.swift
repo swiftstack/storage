@@ -5,7 +5,7 @@ import Reflection
 
 import Platform
 
-class Storage {
+public class Storage {
     enum Error: String, Swift.Error {
         case invalidKind = "invalid kind, please use struct or enum"
         case incompatibleType = "the container was created for another type"
@@ -13,7 +13,7 @@ class Storage {
         case unknownType
     }
 
-    typealias Key = String
+    public typealias Key = String
 
     struct Settings {
         let path: Path
@@ -45,19 +45,19 @@ class Storage {
         })
     }()
 
-    init(at path: Path, coder: StreamCoder.Type) throws {
+    public init(at path: Path, coder: StreamCoder.Type) throws {
         self.settings = Settings(path: path)
         self.coderType = coder
     }
 
-    func validateKind<T>(of type: T.Type) throws {
+    func validate<T>(_ type: T.Type) throws {
         guard kind(of: type) == .struct || kind(of: type) == .enum else {
             throw Error.invalidKind
         }
     }
 
-    func container<T: Codable>(for type: T.Type) throws -> Container<T> {
-        try validateKind(of: type)
+    public func container<T: Codable>(for type: T.Type) throws -> Container<T> {
+        try validate(type)
         switch containers[Key(for: type)] {
         case .some(let container as Container<T>): return container
         case .some(_): throw Error.incompatibleType

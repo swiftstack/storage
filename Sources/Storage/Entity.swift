@@ -1,4 +1,4 @@
-protocol Entity: Codable {
+public protocol Entity: Codable {
     associatedtype Key: Hashable
     var id: Key { get }
 }

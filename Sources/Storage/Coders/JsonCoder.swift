@@ -2,10 +2,10 @@ import JSON
 import File
 import Stream
 
-final class JsonCoder: StreamCoder, StreamAnyDecoder {
+public final class JsonCoder: StreamCoder, StreamAnyDecoder {
     var typeAccessor: TypeAccessor
 
-    init(typeAccessor: @escaping TypeAccessor) {
+    public init(typeAccessor: @escaping TypeAccessor) {
         self.typeAccessor = typeAccessor
     }
 
@@ -28,7 +28,7 @@ final class JsonCoder: StreamCoder, StreamAnyDecoder {
         }
     }
 
-    func next<T: AnyDecodable>(from reader: StreamReader) throws -> T? {
+    public func next<T: AnyDecodable>(from reader: StreamReader) throws -> T? {
         return try read(from: reader) {
             return try JSON.withScopedDecoder(using: reader) { decoder in
                 return try T(from: decoder, typeAccessor: typeAccessor)
@@ -36,7 +36,7 @@ final class JsonCoder: StreamCoder, StreamAnyDecoder {
         }
     }
 
-    func next<T: Decodable>(
+    public func next<T: Decodable>(
         _ type: T.Type,
         from reader: StreamReader) throws -> T?
     {
@@ -45,7 +45,7 @@ final class JsonCoder: StreamCoder, StreamAnyDecoder {
         }
     }
 
-    func next(
+    public func next(
         _ type: Decodable.Type,
         from reader: StreamReader) throws -> Decodable?
     {
@@ -54,7 +54,7 @@ final class JsonCoder: StreamCoder, StreamAnyDecoder {
         }
     }
 
-    func write(_ record: Encodable, to writer: StreamWriter) throws {
+    public func write(_ record: Encodable, to writer: StreamWriter) throws {
         try JSON.encode(encodable: record, to: writer)
         try writer.write(.lf)
     }

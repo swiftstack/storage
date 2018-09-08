@@ -1,10 +1,10 @@
 import Stream
 
-protocol StreamEncoder {
+public protocol StreamEncoder {
     func write(_ action: Encodable, to writer: StreamWriter) throws
 }
 
-protocol StreamDecoder {
+public protocol StreamDecoder {
     func next<T: Decodable>(
         _ type: T.Type,
         from reader: StreamReader
@@ -16,15 +16,15 @@ protocol StreamDecoder {
     ) throws -> Decodable?
 }
 
-typealias TypeAccessor = (Storage.Key) throws -> Codable.Type
+public typealias TypeAccessor = (Storage.Key) throws -> Codable.Type
 
-protocol AnyDecodable {
+public protocol AnyDecodable {
     init(from decoder: Decoder, typeAccessor: TypeAccessor) throws
 }
 
-protocol StreamAnyDecoder {
+public protocol StreamAnyDecoder {
     init(typeAccessor: @escaping TypeAccessor)
     func next<T: AnyDecodable>(from reader: StreamReader) throws -> T?
 }
 
-protocol StreamCoder: StreamEncoder & StreamDecoder & StreamAnyDecoder {}
+public  protocol StreamCoder: StreamEncoder & StreamDecoder & StreamAnyDecoder {}
