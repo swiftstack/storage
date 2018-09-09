@@ -1,7 +1,6 @@
 import Time
 import File
 import Async
-import Reflection
 
 import Platform
 
@@ -50,14 +49,13 @@ public class Storage {
         self.coderType = coder
     }
 
-    func validate<T>(_ type: T.Type) throws {
-        guard kind(of: type) == .struct || kind(of: type) == .enum else {
-            throw Error.invalidKind
-        }
+    public func container<T>(for type: T.Type) throws -> Container<T>
+        where T: AnyObject & Codable
+    {
+        throw Error.invalidKind
     }
 
     public func container<T: Codable>(for type: T.Type) throws -> Container<T> {
-        try validate(type)
         switch containers[Key(for: type)] {
         case .some(let container as Container<T>): return container
         case .some(_): throw Error.incompatibleType

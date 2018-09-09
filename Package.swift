@@ -8,9 +8,6 @@ let package = Package(
     ],
     dependencies: [
         .package(
-            url: "https://github.com/swift-stack/reflection.git",
-            .branch("master")),
-        .package(
             url: "https://github.com/swift-stack/async.git",
             .branch("master")),
         .package(
@@ -33,7 +30,6 @@ let package = Package(
         .target(
             name: "Storage",
             dependencies: [
-                "Reflection",
                 "Async",
                 "File",
                 "Time",

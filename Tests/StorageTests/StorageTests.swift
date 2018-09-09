@@ -21,7 +21,9 @@ final class StorageTests: TestCase {
         scope {
             let storage = try Storage(at: temp.appending(#function))
             class User: Entity { let id: String = "" }
-            assertThrowsError(try storage.container(for: User.self))
+            assertThrowsError(try storage.container(for: User.self)) { error in
+                assertEqual(error as? Storage.Error, .invalidKind)
+            }
         }
     }
 
