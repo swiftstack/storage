@@ -11,9 +11,14 @@ struct Snapshot {
         let stream: StreamReader
         let decoder: StreamDecoder
 
-        init(from file: File, decoder: StreamDecoder) throws {
-            self.stream = try file.open(flags: .read).inputStream
+        init(from stream: StreamReader, decoder: StreamDecoder) throws {
+            self.stream = stream
             self.decoder = decoder
+        }
+
+        convenience init(from file: File, decoder: StreamDecoder) throws {
+            let file = try file.open(flags: .read)
+            try self.init(from: file.inputStream, decoder: decoder)
         }
 
         func readHeader() throws -> Header? {
