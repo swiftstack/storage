@@ -18,14 +18,14 @@ extension Storage.Container: ContainerProtocol {
 
     func restore(_ item: Decodable) throws {
         guard let item = item as? T else {
-            throw Storage.Error.unknownType
+            throw Persistence.Error.unknownType
         }
         items[item.id] = item
     }
 
     func play(_ record: WAL.Record) throws {
         guard let item = record.object as? T else {
-            throw Storage.Error.unknownType
+            throw Persistence.Error.unknownType
         }
         switch record.action {
         case .insert, .upsert:
