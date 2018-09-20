@@ -6,6 +6,7 @@ enum BinaryProtocol {
         case invalidRequest = 1
         case invalidRequestType = 2
         case functionNotFound = 3
+        case unknown = 4
 
         init(from stream: StreamReader) throws {
             let type = try stream.read(UInt8.self)

@@ -13,13 +13,18 @@ public class Storage {
     public typealias Key = String
 
     var containers: [Key : ContainerProtocol] = [:]
+    var functions: [String: StoredProcedure] = [:]
     var persistense: Persistence? = nil
 
     public init(at path: Path, coder: StreamCoder.Type) throws {
         // FIXME: ref cycle
         self.persistense = Persistence(for: self, at: path, coder: coder)
     }
+}
 
+// MARK: Containers
+
+extension Storage {
     public func container<T>(for type: T.Type) throws -> Container<T>
         where T: AnyObject & Codable
     {
@@ -39,6 +44,27 @@ public class Storage {
         let container = Container<T>(in: self)
         containers[Key(for: type)] = container
         return container
+    }
+}
+
+// MARK: Stored procedures
+
+extension Storage {
+    public func registerFunction(
+        name: String,
+        body: @escaping StoredProcedure)
+    {
+        functions[name] = body
+    }
+
+    public func call(
+        _ name: String,
+        with arguments: [String : String]) throws -> Encodable?
+    {
+        guard let function = functions[name] else {
+            return nil
+        }
+        return try function(arguments)
     }
 }
 

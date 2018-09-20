@@ -9,21 +9,14 @@ import MessagePack
 
 @_exported import Storage
 
-public typealias StoredProcedure = ([String : String]) throws -> Encodable
-
 public class Server {
     let storage: Storage
-    var functions: [String: StoredProcedure]
 
     var binaryServer: Network.Server?
     var httpServer: HTTP.Server?
 
-    public init(
-        at path: Path,
-        functions: [String: StoredProcedure] = [:]) throws
-    {
+    public init(at path: Path) throws {
         self.storage = try Storage(at: path)
-        self.functions = functions
         self.httpServer = nil
         self.binaryServer = nil
     }
@@ -51,7 +44,7 @@ public class Server {
         name: String,
         body: @escaping StoredProcedure)
     {
-        functions[name] = body
+        storage.registerFunction(name: name, body: body)
     }
 
     func binaryHandler(_ socket: Socket) {
@@ -81,29 +74,33 @@ public class Server {
     }
 
     func handle(_ request: BinaryProtocol.Request) -> BinaryProtocol.Response {
-        switch request {
-        case .rpc(let name, let arguments):
-            switch self.functions[name] {
-            case .some(let function):
-                return .output { writer in
-                    let result = try function(arguments)
-                    try MessagePack.encode(encodable: result, to: writer)
+        do {
+            switch request {
+            case .rpc(let function, let arguments):
+                let result = try storage.call(function, with: arguments)
+                switch result {
+                case .some(let result):
+                    return .output({ writer in
+                        try MessagePack.encode(encodable: result, to: writer)
+                    })
+                case .none:
+                    return .error(.functionNotFound)
                 }
-            case .none:
-                return .error(.functionNotFound)
             }
+        } catch {
+            return .error(.unknown)
         }
     }
 
     func httpHandler(
         request: Request,
-        functionName: String) throws -> Response
+        function: String) throws -> Response
     {
-        guard let function = self.functions[functionName] else {
+        let arguments = request.url.query?.values ?? [:]
+        guard let result = try storage.call(function, with: arguments) else {
             throw HTTP.Error.notFound
         }
-        let object = try function(request.url.query?.values ?? [:])
-        return try Response(body: object)
+        return try Response(body: result)
     }
 
     public func start() throws {
