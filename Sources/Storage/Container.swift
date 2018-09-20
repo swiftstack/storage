@@ -1,12 +1,10 @@
 extension Storage {
     public class Container<T: Entity> {
-        unowned let storage: Storage
         var items: [T.Key: T]
 
         var undo = Undo<T>()
 
-        init(in storage: Storage) {
-            self.storage = storage
+        init() {
             self.items = [:]
         }
 

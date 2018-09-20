@@ -23,15 +23,12 @@ struct WAL {
     class Writer {
         let file: File
         let encoder: StreamEncoder
-
         var stream: StreamWriter?
 
         init(to file: File, encoder: StreamEncoder) {
             self.file = file
             self.encoder = encoder
         }
-
-        let types: [Storage.Key : Codable.Type] = [:]
 
         func open() throws {
             if !Directory.isExists(at: file.location) {

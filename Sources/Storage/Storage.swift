@@ -2,8 +2,6 @@ import Time
 import File
 import Async
 
-import Platform
-
 public class Storage {
     enum Error: String, Swift.Error {
         case invalidKind = "invalid kind, please use struct or enum"
@@ -31,7 +29,9 @@ extension Storage {
         throw Error.invalidKind
     }
 
-    public func container<T: Codable>(for type: T.Type) throws -> Container<T> {
+    public func container<T>(for type: T.Type) throws -> Container<T>
+        where T: Codable
+    {
         switch containers[Key(for: type)] {
         case .some(let container as Container<T>): return container
         case .some(_): throw Error.incompatibleType
@@ -41,7 +41,7 @@ extension Storage {
 
     @discardableResult
     func register<T: Entity>(_ type: T.Type) -> Container<T> {
-        let container = Container<T>(in: self)
+        let container = Container<T>()
         containers[Key(for: type)] = container
         return container
     }

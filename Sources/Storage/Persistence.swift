@@ -23,11 +23,6 @@ class Persistence {
     let storage: Storage
     let settings: Settings
 
-    lazy var walWriter: WAL.Writer = {
-        let wal = File(name: "wal", at: settings.wal)
-        return WAL.Writer(to: wal, encoder: coder)
-    }()
-
     let coderType: StreamCoder.Type
 
     lazy var coder: StreamCoder = {
