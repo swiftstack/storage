@@ -48,19 +48,17 @@ extension Storage.Container: ContainerProtocol {
 
 struct SnapshotIterator<Model: Entity>: SnapshotIteratorProtocol {
     let container: Storage.Container<Model>
-    var keys: [Model.Key]
-    var position: Int = 0
+    var iterator: IndexingIterator<Dictionary<Model.Key, Model>.Keys>
 
     init(for container: Storage.Container<Model>) {
         self.container = container
-        self.keys = [Model.Key](container.items.keys)
+        self.iterator = container.items.keys.makeIterator()
     }
 
     mutating func next() -> Encodable? {
-        guard position < keys.count else {
+        guard let key = iterator.next() else {
             return nil
         }
-        defer { position += 1 }
-        return container.getLatestPersistentValue(forKey: keys[position])
+        return container.getLatestPersistentValue(forKey: key)
     }
 }
