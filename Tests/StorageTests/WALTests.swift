@@ -34,7 +34,7 @@ final class WALTests: TestCase {
 
             let record = WAL.Record(
                 key: "User",
-                action: .insert,
+                action: .upsert,
                 object: user)
 
             try writer.append(record)
@@ -54,7 +54,7 @@ final class WALTests: TestCase {
             assertEqual(records.count, 1)
             if let record = records.first {
                 assertEqual(record.key, "User")
-                assertEqual(record.action, .insert)
+                assertEqual(record.action, .upsert)
                 assertEqual(record.object as? User, user)
             }
         }
@@ -70,9 +70,9 @@ final class WALTests: TestCase {
         let admin = User(name: "Admin")
 
         let records: [WAL.Record] = [
-            .init(key: "Users", action: .insert, object: user),
-            .init(key: "Users", action: .insert, object: guest),
-            .init(key: "Users", action: .insert, object: admin),
+            .init(key: "Users", action: .upsert, object: user),
+            .init(key: "Users", action: .upsert, object: guest),
+            .init(key: "Users", action: .upsert, object: admin),
             .init(key: "Users", action: .remove, object: guest)
         ]
 
@@ -99,7 +99,7 @@ final class WALTests: TestCase {
             assertEqual(records.count, 4)
             if records.count == 4 {
                 assertEqual(records[0].key, "Users")
-                assertEqual(records[0].action, .insert)
+                assertEqual(records[0].action, .upsert)
                 assertEqual(records[0].object as? User, user)
             }
         }
