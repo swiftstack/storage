@@ -101,6 +101,8 @@ final class ServerTests: TestCase {
             let name: String
         }
 
+        let serverStarted = Channel<Bool>(capacity: 1)
+
         async.task { [unowned self] in
             scope {
                 let server = try Server(at: self.temp.appending(#function))
@@ -116,12 +118,15 @@ final class ServerTests: TestCase {
                     return container.first(where: \.name, equals: name)
                 }
 
+                serverStarted.write(true)
+
                 try server.start()
             }
         }
 
         async.task {
             defer { async.loop.terminate() }
+            _ = serverStarted.read()  
             scope {
                 let client = HTTP.Client(host: "localhost", port: 2000)
                 let response = try client.get(path: "/call/test?username=test")
