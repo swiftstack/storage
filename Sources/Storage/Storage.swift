@@ -12,11 +12,13 @@ public class Storage {
 
     var containers: [Key : ContainerProtocol] = [:]
     var functions: [String: StoredProcedure] = [:]
-    var persistense: Persistence? = nil
 
-    public init(at path: Path, coder: StreamCoder.Type) throws {
-        // FIXME: ref cycle
-        self.persistense = Persistence(for: self, at: path, coder: coder)
+    let path: Path
+    let coder: StreamCoder
+
+    public init(at path: Path, coder: StreamCoder) throws {
+        self.path = path
+        self.coder = coder
     }
 }
 
@@ -41,7 +43,8 @@ extension Storage {
 
     @discardableResult
     func register<T: Entity>(_ type: T.Type) -> Container<T> {
-        let container = Container<T>()
+        let name = String(describing: type)
+        let container = Container<T>(name: name, at: path, coder: coder)
         containers[Key(for: type)] = container
         return container
     }
@@ -69,12 +72,22 @@ extension Storage {
 }
 
 extension Storage {
+    func writeWAL() throws {
+        for (_, container) in containers {
+            try container.writeWAL()
+        }
+    }
+
     func makeSnapshot() throws {
-        try persistense?.makeSnapshot()
+        for (_, container) in containers {
+            try container.makeSnapshot()
+        }
     }
 
     func restore() throws {
-        try persistense?.restore()
+        for (_, container) in containers {
+            try container.restore()
+        }
     }
 }
 

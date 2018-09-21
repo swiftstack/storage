@@ -2,13 +2,7 @@ import JSON
 import File
 import Stream
 
-public final class JsonCoder: StreamCoder, StreamAnyDecoder {
-    var typeAccessor: TypeAccessor
-
-    public init(typeAccessor: @escaping TypeAccessor) {
-        self.typeAccessor = typeAccessor
-    }
-
+public final class JsonCoder: StreamCoder {
     enum Error: Swift.Error {
         case invalidFormat
     }
@@ -25,14 +19,6 @@ public final class JsonCoder: StreamCoder, StreamAnyDecoder {
             return next
         } catch let error as StreamError where error == .insufficientData {
             return nil
-        }
-    }
-
-    public func next<T: AnyDecodable>(from reader: StreamReader) throws -> T? {
-        return try read(from: reader) {
-            return try JSON.withScopedDecoder(using: reader) { decoder in
-                return try T(from: decoder, typeAccessor: typeAccessor)
-            }
         }
     }
 

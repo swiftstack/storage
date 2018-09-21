@@ -1,64 +1,70 @@
+import File
+
 protocol ContainerProtocol {
     var count: Int { get }
-    var type: Codable.Type { get }
-    func restore(_ item: Decodable) throws
-    func play(_ record: WAL.Record) throws
 
-    func makeSnapshotIterator() -> SnapshotIteratorProtocol
-}
-
-protocol SnapshotIteratorProtocol {
-    mutating func next() -> Encodable?
+    func restore() throws
+    func writeWAL() throws
+    func makeSnapshot() throws
 }
 
 extension Storage.Container: ContainerProtocol {
-    var type: Codable.Type {
-        return T.self
-    }
-
-    func restore(_ item: Decodable) throws {
-        guard let item = item as? T else {
-            throw Persistence.Error.unknownType
+    func restore() throws {
+        let snapshot = File(name: "snapshot", at: path.appending(name))
+        if snapshot.isExists {
+            let reader = try Snapshot.Reader<T>(from: snapshot, decoder: coder)
+            let _ = try reader.readHeader()
+            while let next = try reader.readNext() {
+                items[next.id] = next
+            }
         }
-        items[item.id] = item
-    }
 
-    func play(_ record: WAL.Record) throws {
-        guard let item = record.object as? T else {
-            throw Persistence.Error.unknownType
-        }
-        switch record.action {
-        case .upsert:
-            items[item.id] = item
-        default:
-            items[item.id] = nil
+        let wal = File(name: "wal", at: path.appending(name))
+        if wal.isExists {
+            let reader = try WAL.Reader<T>(from: wal, decoder: coder)
+            while let record = try reader.readNext() {
+                switch record {
+                case .upsert(let entity): items[entity.id] = entity
+                case .delete(let key): items[key] = nil
+                }
+            }
         }
     }
 
-    // MARK: make snapshot
-
-    func getLatestPersistentValue(forKey key: T.Key) -> T? {
-        return undo.getLatestPersistentValue(forKey: key) ?? items[key]
-    }
-
-    func makeSnapshotIterator() -> SnapshotIteratorProtocol {
-        return SnapshotIterator(for: self)
-    }
-}
-
-struct SnapshotIterator<Model: Entity>: SnapshotIteratorProtocol {
-    let container: Storage.Container<Model>
-    var iterator: IndexingIterator<Dictionary<Model.Key, Model>.Keys>
-
-    init(for container: Storage.Container<Model>) {
-        self.container = container
-        self.iterator = container.items.keys.makeIterator()
-    }
-
-    mutating func next() -> Encodable? {
-        guard let key = iterator.next() else {
-            return nil
+    func writeWAL() throws {
+        let wal = File(name: "wal", at: path.appending(name))
+        let writer = try WAL.Writer<T>(to: wal, encoder: coder)
+        for (key, action) in undo.items {
+            switch action {
+            case .delete:
+                switch items[key] {
+                case .some(let entity):
+                    try writer.append(.upsert(entity))
+                case .none:
+                    break
+                }
+            case .restore:
+                switch items[key] {
+                case .some(let entity):
+                    try writer.append(.upsert(entity))
+                case .none:
+                    try writer.append(.delete(key))
+                }
+            }
         }
-        return container.getLatestPersistentValue(forKey: key)
+        undo.reset()
+    }
+
+    func makeSnapshot() throws {
+        let snapshot = File(name: "snapshot", at: path.appending(name))
+        let writer = try Snapshot.Writer<T>(to: snapshot, encoder: coder)
+        try writer.write(header: .init(name: name, count: count))
+        for (key, entity) in items {
+            switch undo.getLatestPersistentValue(forKey: key) {
+            case .some(let value): try writer.write(value)
+            case .none: try writer.write(entity)
+            }
+        }
+        try writer.flush()
     }
 }

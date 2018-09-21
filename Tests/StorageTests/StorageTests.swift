@@ -17,11 +17,21 @@ final class StorageTests: TestCase {
         }
     }
 
+    final class Class: Entity {
+        let id: String = ""
+
+        static func == (
+            lhs: StorageTests.Class,
+            rhs: StorageTests.Class) -> Bool
+        {
+            return lhs.id == rhs.id
+        }
+    }
+
     func testClassType() {
         scope {
             let storage = try Storage(at: temp.appending(#function))
-            class User: Entity { let id: String = "" }
-            assertThrowsError(try storage.container(for: User.self)) { error in
+            assertThrowsError(try storage.container(for: Class.self)) { error in
                 assertEqual(error as? Storage.Error, .invalidKind)
             }
         }
@@ -44,7 +54,7 @@ final class StorageTests: TestCase {
         }
     }
 
-    func testStoragePersistence() {
+    func testContainer() {
         scope {
             let storage = try Storage(at: temp.appending(#function))
             struct User: Entity {
@@ -57,79 +67,6 @@ final class StorageTests: TestCase {
             let users = try storage.container(for: User.self)
             let user = users.get("first")
             assertEqual(user?.name, "first")
-        }
-    }
-
-    func testRecovery() {
-        struct User: Entity, Equatable {
-            let name: String
-            var id: String {
-                return name
-            }
-        }
-
-        let user = User(name: "user")
-        let guest = User(name: "guest")
-        let admin = User(name: "admin")
-
-        let usersKey = Storage.Key(for: User.self)
-
-        let records: [WAL.Record] = [
-            .init(key: usersKey, action: .upsert, object: user),
-            .init(key: usersKey, action: .upsert, object: guest),
-            .init(key: usersKey, action: .upsert, object: admin),
-            .init(key: usersKey, action: .remove, object: guest)
-        ]
-
-        scope {
-            let file = File(name: "wal", at: temp.appending(#function))
-            let wal = try WAL.Writer(to: file)
-            try wal.open()
-            try records.forEach(wal.append)
-        }
-
-        scope {
-            let storage = try Storage(at: temp.appending(#function))
-            storage.register(User.self)
-            try storage.restore()
-
-            let users = try storage.container(for: User.self)
-            assertEqual(users.count, 2)
-            assertNil(users.get("guest"))
-            let user = users.get("user")
-            assertEqual(user?.name, "user")
-        }
-    }
-
-    func testSnapshot() {
-        struct User: Entity {
-            let name: String
-            var id: String {
-                return name
-            }
-        }
-
-        let path = temp.appending(#function)
-
-        scope {
-            let storage = try Storage(at: path)
-            let container = try storage.container(for: User.self)
-            try container.insert(User(name: "first"))
-            try container.insert(User(name: "second"))
-            try container.insert(User(name: "third"))
-
-            try storage.makeSnapshot()
-        }
-
-        assertTrue(File.isExists(at: path.appending("snapshot")))
-
-        scope {
-            let storage = try Storage(at: path)
-            storage.register(User.self)
-            try storage.restore()
-
-            let users = try storage.container(for: User.self)
-            assertEqual(users.count, 3)
         }
     }
 }

@@ -3,61 +3,65 @@ import JSON
 import Stream
 
 struct WAL {
-    struct Record {
-        enum Action: String, Codable {
+    enum Record<T: Entity>: Equatable {
+        enum Action: Int, Codable {
             case upsert
-            case remove
+            case delete
         }
-        let key: Storage.Key
-        let action: Action
-        let object: Codable
+        case upsert(T)
+        case delete(T.Key)
     }
 
     enum Error: Swift.Error {
-        case closed
         case cantDecode
         case cantEncode
         case cantOpenLog
     }
 
-    class Writer {
-        let file: File
-        let encoder: StreamEncoder
-        var stream: StreamWriter?
+    class Reader<T: Entity> {
+        let stream: StreamReader
+        let decoder: StreamDecoder
 
-        init(to file: File, encoder: StreamEncoder) {
-            self.file = file
+        init(from stream: StreamReader, decoder: StreamDecoder) throws {
+            self.stream = stream
+            self.decoder = decoder
+        }
+
+        convenience init(from file: File, decoder: StreamDecoder) throws {
+            let file = try file.open(flags: .read)
+            try self.init(from: file.inputStream, decoder: decoder)
+        }
+
+        func readNext() throws -> Record<T>? {
+            return try decoder.next(Record<T>.self, from: stream)
+        }
+    }
+
+    class Writer<T: Entity> {
+        let encoder: StreamEncoder
+        var stream: StreamWriter
+
+        init(to stream: StreamWriter, encoder: StreamEncoder) throws {
+            self.stream = stream
             self.encoder = encoder
         }
 
-        func open() throws {
+        convenience
+        init(to file: File, encoder: StreamEncoder) throws {
             if !Directory.isExists(at: file.location) {
                 try Directory.create(at: file.location)
             }
             let stream = try file.open(flags: [.write, .create]).outputStream
             try stream.seek(to: .end)
-            self.stream = stream
+            try self.init(to: stream, encoder: encoder)
         }
 
-        func append(_ record: Record) throws {
-            guard let stream = stream else {
-                throw Error.closed
-            }
+        func append(_ record: Record<T>) throws {
             try encoder.write(record, to: stream)
         }
-    }
 
-    class Reader {
-        let file: File
-        let decoder: StreamAnyDecoder
-
-        init(from file: File, decoder: StreamAnyDecoder) {
-            self.file = file
-            self.decoder = decoder
-        }
-
-        func makeRecoveryIterator() throws -> DecodingIterator<Record> {
-            return try DecodingIterator(from: file, using: decoder)
+        func flush() throws {
+            try stream.flush()
         }
     }
 }

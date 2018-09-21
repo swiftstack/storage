@@ -7,7 +7,7 @@ struct Snapshot {
         let count: Int
     }
 
-    class Reader {
+    class Reader<T: Entity> {
         let stream: StreamReader
         let decoder: StreamDecoder
 
@@ -25,12 +25,12 @@ struct Snapshot {
             return try decoder.next(Header.self, from: stream)
         }
 
-        func readNext(_ type: Decodable.Type) throws -> Decodable? {
-            return try decoder.next(type, from: stream)
+        func readNext() throws -> T? {
+            return try decoder.next(T.self, from: stream)
         }
     }
 
-    class Writer {
+    class Writer<T: Entity> {
         let output: StreamWriter
         let encoder: StreamEncoder
 
@@ -46,7 +46,7 @@ struct Snapshot {
             try encoder.write(header, to: output)
         }
 
-        func write(_ value: Encodable) throws {
+        func write(_ value: T) throws {
             try encoder.write(value, to: output)
         }
 

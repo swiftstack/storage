@@ -1,10 +1,30 @@
+import File
+
 extension Storage {
     public class Container<T: Entity> {
-        var items: [T.Key: T]
+        let name: String
+        let path: Path
+        let coder: StreamCoder
 
+        var items: [T.Key: T]
         var undo = Undo<T>()
 
-        init() {
+        func onInsert(newValue: T) {
+            undo.append(key: newValue.id, action: .delete)
+        }
+
+        func onUpsert(oldValue: T, newValue: T) {
+            undo.append(key: oldValue.id, action: .restore(oldValue))
+        }
+
+        func onDelete(oldValue: T) {
+            undo.append(key: oldValue.id, action: .restore(oldValue))
+        }
+
+        init(name: String, at path: Path, coder: StreamCoder) {
+            self.name = name
+            self.path = path
+            self.coder = coder
             self.items = [:]
         }
 
@@ -21,7 +41,7 @@ extension Storage {
             guard items[value.id] == nil else {
                 throw Error.alreadyExist
             }
-            undo.append(key: value.id, action: .delete)
+            onInsert(newValue: value)
             items[value.id] = value
         }
 
@@ -33,7 +53,7 @@ extension Storage {
             guard let deleted = items.removeValue(forKey: key) else {
                 return nil
             }
-            undo.append(key: key, action: .restore(deleted))
+            onDelete(oldValue: deleted)
             return deleted
         }
 
@@ -41,10 +61,10 @@ extension Storage {
             let result = items.removeValue(forKey: value.id)
             switch result {
             case .some(let old):
-                undo.append(key: value.id, action: .restore(old))
+                onUpsert(oldValue: old, newValue: value)
                 items[value.id] = value
             case .none:
-                undo.append(key: value.id, action: .delete)
+                onInsert(newValue: value)
                 items[value.id] = value
             }
         }

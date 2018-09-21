@@ -13,6 +13,10 @@ extension UUID: Comparable {
 final class ContainerTests: TestCase {
     let temp = Path(string: "/tmp/ContainerTests")
 
+    override func tearDown() {
+        try? Directory.remove(at: temp)
+    }
+
     struct User: Entity, Equatable, Comparable {
         let id: UUID
         var name: String

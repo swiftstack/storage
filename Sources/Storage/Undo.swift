@@ -1,32 +1,25 @@
 struct Undo<Model: Entity> {
-    enum Action {
+    enum Action: Equatable {
         case delete
         case restore(Model)
     }
-    var current: [Model.Key : Action] = [:]
-    var pending: [Model.Key : Action] = [:]
+    var items: [Model.Key : Action] = [:]
 
     mutating func append(key: Model.Key, action: Action) {
-        guard current[key] == nil else {
+        guard items[key] == nil else {
             return
         }
-        current[key] = action
-    }
-
-    mutating func snapshot() {
-        pending = current
-        current.removeAll(keepingCapacity: true)
+        items[key] = action
     }
 
     mutating func reset() {
-        current.removeAll(keepingCapacity: true)
-        pending.removeAll(keepingCapacity: true)
+        items.removeAll(keepingCapacity: true)
     }
 }
 
 extension Undo {
     func getLatestPersistentValue(forKey key: Model.Key) -> Model? {
-        guard let undo = pending[key] ?? current[key] else {
+        guard let undo = items[key] else {
             return nil
         }
         switch undo {

@@ -16,15 +16,4 @@ public protocol StreamDecoder {
     ) throws -> Decodable?
 }
 
-public typealias TypeAccessor = (Storage.Key) throws -> Codable.Type
-
-public protocol AnyDecodable {
-    init(from decoder: Decoder, typeAccessor: TypeAccessor) throws
-}
-
-public protocol StreamAnyDecoder {
-    init(typeAccessor: @escaping TypeAccessor)
-    func next<T: AnyDecodable>(from reader: StreamReader) throws -> T?
-}
-
-public  protocol StreamCoder: StreamEncoder & StreamDecoder & StreamAnyDecoder {}
+public  protocol StreamCoder: StreamEncoder & StreamDecoder {}
