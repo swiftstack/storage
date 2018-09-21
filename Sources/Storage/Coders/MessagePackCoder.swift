@@ -3,9 +3,8 @@ import Stream
 import MessagePack
 
 final class MessagePackCoder: StreamCoder {
-    func next<T: Decodable>(
-        _ type: T.Type,
-        from reader: StreamReader) throws -> T?
+    func next<T>(_ type: T.Type, from reader: StreamReader) throws -> T?
+        where T: Decodable
     {
         do {
             return try MessagePack.decode(type, from: reader)
@@ -14,17 +13,9 @@ final class MessagePackCoder: StreamCoder {
         }
     }
 
-    func next(
-        _ type: Decodable.Type,
-        from reader: StreamReader) throws -> Decodable?
+    func write<T>(_ record: T, to writer: StreamWriter) throws
+        where T: Encodable
     {
-        do {
-            return try MessagePack.decode(decodable: type, from: reader)
-        } catch let error as StreamError where error == .insufficientData {
-            return nil
-        }
+        try MessagePack.encode(encodable: record, to: writer)
     }
-
-    func write(_ record: Encodable, to writer: StreamWriter) throws {
-        try MessagePack.encode(encodable: record, to: writer)    }
 }

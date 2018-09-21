@@ -22,25 +22,19 @@ public final class JsonCoder: StreamCoder {
         }
     }
 
-    public func next<T: Decodable>(
+    public func next<T>(
         _ type: T.Type,
         from reader: StreamReader) throws -> T?
+        where T: Decodable
     {
         return try read(from: reader) {
             return try JSON.decode(type, from: reader)
         }
     }
 
-    public func next(
-        _ type: Decodable.Type,
-        from reader: StreamReader) throws -> Decodable?
+    public func write<T>(_ record: T, to writer: StreamWriter) throws
+        where T: Encodable
     {
-        return try read(from: reader) {
-            return try JSON.decode(decodable: type, from: reader)
-        }
-    }
-
-    public func write(_ record: Encodable, to writer: StreamWriter) throws {
         try JSON.encode(encodable: record, to: writer)
         try writer.write(.lf)
     }
