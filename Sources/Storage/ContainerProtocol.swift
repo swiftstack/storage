@@ -34,7 +34,7 @@ extension Storage.Container: ContainerProtocol {
     func writeWAL() throws {
         let wal = File(name: "wal", at: path.appending(name))
         let writer = try WAL.Writer<T>(to: wal, encoder: coder)
-        for (key, action) in undo.items {
+        for (key, action) in backup.items {
             switch action {
             case .delete:
                 switch items[key] {
@@ -52,7 +52,7 @@ extension Storage.Container: ContainerProtocol {
                 }
             }
         }
-        undo.reset()
+        backup.removeAll()
     }
 
     func makeSnapshot() throws {
@@ -60,7 +60,7 @@ extension Storage.Container: ContainerProtocol {
         let writer = try Snapshot.Writer<T>(to: snapshot, encoder: coder)
         try writer.write(header: .init(name: name, count: count))
         for (key, entity) in items {
-            switch undo.getLatestPersistentValue(forKey: key) {
+            switch backup.getLatestPersistentValue(forKey: key) {
             case .some(let value): try writer.write(value)
             case .none: try writer.write(entity)
             }

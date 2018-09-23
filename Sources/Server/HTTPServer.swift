@@ -4,12 +4,17 @@ import Async
 
 final class HTTPServer {
     var server: HTTP.Server
-    var storage: StorageProtocol
+    var storage: SharedStorage
 
-    init(for storage: StorageProtocol, at host: String, on port: Int) throws {
+    init(for storage: SharedStorage, at host: String, on port: Int) throws {
         self.storage = storage
         self.server = try HTTP.Server(host: host, port: port)
         self.server.route(get: "/call/:string", to: httpHandler)
+    }
+
+    convenience
+    init(for storage: Storage, at host: String, on port: Int) throws {
+        try self.init(for: .init(for: storage), at: host, on: port)
     }
 
     func httpHandler(

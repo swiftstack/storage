@@ -13,32 +13,45 @@ final class HTTPServerTests: TestCase {
         async.setUp(Fiber.self)
     }
 
+    override func tearDown() {
+        try? Directory.remove(at: temp)
+    }
+
     func testHTTPHandler() {
         struct Test: Codable, Equatable, Entity {
             let id: String
             let name: String
         }
 
-        scope {
-            let storage = try Storage(at: temp.appending(#function))
-            let container = try storage.container(for: Test.self)
-            try container.insert(Test(id: "1", name: "test"))
-            storage.registerFunction(name: "test") { arguments in
-                guard let name = arguments["username"] else {
-                    throw "zero arguments"
+        async.task { [unowned self] in
+            defer { async.loop.terminate() }
+            scope {
+                let storage = try Storage(at: self.temp.appending(#function))
+                let container = try storage.container(for: Test.self)
+                try container.insert(Test(id: "1", name: "test"))
+                storage.registerFunction(name: "test") { arguments in
+                    guard let name = arguments["username"] else {
+                        throw "zero arguments"
+                    }
+                    return container.first(where: \.name, equals: name)
                 }
-                return container.first(where: \.name, equals: name)
+                let server = try HTTPServer(
+                    for: storage,
+                    at: "localhost",
+                    on: 4001)
+                let request = Request(
+                    url: "/call/test?username=test",
+                    method: .get)
+                let response = try server.httpHandler(
+                    request: request,
+                    function: "test")
+                assertEqual(response.string, "{\"id\":\"1\",\"name\":\"test\"}")
+                let user = try HTTP.Coder.decodeModel(Test.self, from: response)
+                assertEqual(user, Test(id: "1", name: "test"))
             }
-
-            let server = try HTTPServer(for: storage, at: "localhost", on: 4001)
-            let request = Request(url: "/call/test?username=test", method: .get)
-            let response = try server.httpHandler(
-                request: request,
-                function: "test")
-            assertEqual(response.string, "{\"id\":\"1\",\"name\":\"test\"}")
-            let user = try HTTP.Coder.decodeModel(Test.self, from: response)
-            assertEqual(user, Test(id: "1", name: "test"))
         }
+
+        async.loop.run()
     }
 
     func testHTTPFullStask() {

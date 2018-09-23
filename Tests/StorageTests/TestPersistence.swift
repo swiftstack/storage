@@ -18,7 +18,9 @@ final class PersistenceTests: TestCase {
 
         let path = temp.appending(#function)
 
-        let container = Storage.Container<User>(
+        typealias Container = Storage.Container
+
+        let container = Container<User>(
             name: "User",
             at: path,
             coder: JsonCoder())
@@ -31,22 +33,22 @@ final class PersistenceTests: TestCase {
             try container.insert(user)
             try container.insert(guest)
             try container.insert(admin)
-            let expected: [User.Key : Undo<User>.Action] = [
+            let expected: [User.Key : Container<User>.Backup.Action] = [
                 user.id : .delete,
                 guest.id : .delete,
                 admin.id : .delete,
             ]
-            assertEqual(container.undo.items.count, expected.count)
+            assertEqual(container.backup.items.count, expected.count)
             for (key, value) in expected {
-                assertEqual(container.undo.items[key], value)
+                assertEqual(container.backup.items[key], value)
             }
         }
 
         scope {
             try container.writeWAL()
-            assertEqual(container.undo.items.count, 0)
+            assertEqual(container.backup.items.count, 0)
             assertEqual(container.remove(guest.id), guest)
-            assertEqual(container.undo.items.count, 1)
+            assertEqual(container.backup.items.count, 1)
             try container.writeWAL()
         }
 

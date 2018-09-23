@@ -2,23 +2,25 @@ import File
 
 extension Storage {
     public class Container<T: Entity> {
+        typealias Entity = T
+
         let name: String
         let path: Path
         let coder: StreamCoder
 
         var items: [T.Key: T]
-        var undo = Undo<T>()
+        var backup = Backup()
 
         func onInsert(newValue: T) {
-            undo.append(key: newValue.id, action: .delete)
+            backup.append(key: newValue.id, action: .delete)
         }
 
         func onUpsert(oldValue: T, newValue: T) {
-            undo.append(key: oldValue.id, action: .restore(oldValue))
+            backup.append(key: oldValue.id, action: .restore(oldValue))
         }
 
         func onDelete(oldValue: T) {
-            undo.append(key: oldValue.id, action: .restore(oldValue))
+            backup.append(key: oldValue.id, action: .restore(oldValue))
         }
 
         init(name: String, at path: Path, coder: StreamCoder) {
