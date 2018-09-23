@@ -2,7 +2,7 @@ import Time
 import File
 import Async
 
-public class Storage {
+public class Storage: StorageProtocol {
     enum Error: String, Swift.Error {
         case invalidKind = "invalid kind, please use struct or enum"
         case incompatibleType = "the container was created for another type"
