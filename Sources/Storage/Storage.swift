@@ -2,16 +2,11 @@ import Time
 import File
 import Async
 
-public class Storage: StorageProtocol {
-    enum Error: String, Swift.Error {
-        case invalidKind = "invalid kind, please use struct or enum"
-        case incompatibleType = "the container was created for another type"
-    }
-
+public class Storage {
     public typealias Key = String
 
-    var containers: [Key : ContainerProtocol] = [:]
-    var functions: [String: StoredProcedure] = [:]
+    var containers: [Key : PersistentContainer] = [:]
+    var functions: [String : StoredProcedure] = [:]
 
     let path: Path
     let coder: StreamCoder
@@ -22,9 +17,23 @@ public class Storage: StorageProtocol {
     }
 }
 
+
+// MARK: Key shim
+
+extension Storage.Key {
+    init<T>(for type: T.Type) {
+        self = "\(type)"
+    }
+}
+
 // MARK: Containers
 
 extension Storage {
+    enum Error: String, Swift.Error {
+        case invalidKind = "invalid kind, please use struct or enum"
+        case incompatibleType = "the container was created for another type"
+    }
+
     public func container<T>(for type: T.Type) throws -> Container<T>
         where T: AnyObject & Codable
     {
@@ -88,11 +97,5 @@ extension Storage {
         for (_, container) in containers {
             try container.restore()
         }
-    }
-}
-
-extension Storage.Key {
-    init<T>(for type: T.Type) {
-        self = "\(type)"
     }
 }

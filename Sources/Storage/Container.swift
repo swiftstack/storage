@@ -9,18 +9,18 @@ extension Storage {
         let coder: StreamCoder
 
         var items: [T.Key: T]
-        var backup = Backup()
+        var undo = Undo()
 
         func onInsert(newValue: T) {
-            backup.append(key: newValue.id, action: .delete)
+            undo.onInsert(newValue: newValue)
         }
 
         func onUpsert(oldValue: T, newValue: T) {
-            backup.append(key: oldValue.id, action: .restore(oldValue))
+            undo.onUpsert(oldValue: oldValue, newValue: newValue)
         }
 
         func onDelete(oldValue: T) {
-            backup.append(key: oldValue.id, action: .restore(oldValue))
+            undo.onDelete(oldValue: oldValue)
         }
 
         init(name: String, at path: Path, coder: StreamCoder) {
@@ -30,13 +30,13 @@ extension Storage {
             self.items = [:]
         }
 
-        var count: Int {
-            return items.count
-        }
-
         enum Error: String, Swift.Error {
             case alreadyExist = "The primary key is already exists"
             case alreadyInSnapshot
+        }
+
+        public var count: Int {
+            return items.count
         }
 
         public func insert(_ value: T) throws {
@@ -70,30 +70,32 @@ extension Storage {
                 items[value.id] = value
             }
         }
+    }
+}
 
-        // MARK: secondary keys (not implemented) / fullscan
+// MARK: secondary keys (not implemented) / fullscan
 
-        public func first<C>(where key: KeyPath<T, C>, equals value: C) -> T?
-            where C: Comparable
-        {
-            return items.values.first(where: { $0[keyPath: key] == value })
-        }
+extension Storage.Container {
+    public func first<C>(where key: KeyPath<T, C>, equals value: C) -> T?
+        where C: Comparable
+    {
+        return items.values.first(where: { $0[keyPath: key] == value })
+    }
 
-        public func select<C>(where key: KeyPath<T, C>, equals value: C) -> [T]
-            where C: Comparable
-        {
-            return items.values.filter({ $0[keyPath: key] == value })
-        }
+    public func select<C>(where key: KeyPath<T, C>, equals value: C) -> [T]
+        where C: Comparable
+    {
+        return items.values.filter({ $0[keyPath: key] == value })
+    }
 
-        public func remove<C>(where key: KeyPath<T, C>, equals value: C) -> [T]
-            where C: Comparable
-        {
-            return items.values.compactMap { item in
-                guard item[keyPath: key] == value else {
-                    return nil
-                }
-                return remove(item.id)
+    public func remove<C>(where key: KeyPath<T, C>, equals value: C) -> [T]
+        where C: Comparable
+    {
+        return items.values.compactMap { item in
+            guard item[keyPath: key] == value else {
+                return nil
             }
+            return remove(item.id)
         }
     }
 }

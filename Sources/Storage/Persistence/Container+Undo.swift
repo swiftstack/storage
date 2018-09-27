@@ -1,5 +1,5 @@
 extension Storage.Container {
-    struct Backup {
+    struct Undo {
         enum Action: Equatable {
             case delete
             case restore(Entity)
@@ -19,16 +19,16 @@ extension Storage.Container {
     }
 }
 
-extension Storage.Container.Backup {
-    typealias Entity = T
+extension Storage.Container.Undo {
+    mutating func onInsert(newValue: T) {
+        append(key: newValue.id, action: .delete)
+    }
 
-    func getLatestPersistentValue(forKey key: Entity.Key) -> Entity? {
-        guard let undo = items[key] else {
-            return nil
-        }
-        switch undo {
-        case .delete: return nil
-        case .restore(let model): return model
-        }
+    mutating func onUpsert(oldValue: T, newValue: T) {
+        append(key: oldValue.id, action: .restore(oldValue))
+    }
+
+    mutating func onDelete(oldValue: T) {
+        append(key: oldValue.id, action: .restore(oldValue))
     }
 }

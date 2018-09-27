@@ -33,22 +33,22 @@ final class PersistenceTests: TestCase {
             try container.insert(user)
             try container.insert(guest)
             try container.insert(admin)
-            let expected: [User.Key : Container<User>.Backup.Action] = [
+            let expected: [User.Key : Container<User>.Undo.Action] = [
                 user.id : .delete,
                 guest.id : .delete,
                 admin.id : .delete,
             ]
-            assertEqual(container.backup.items.count, expected.count)
+            assertEqual(container.undo.items.count, expected.count)
             for (key, value) in expected {
-                assertEqual(container.backup.items[key], value)
+                assertEqual(container.undo.items[key], value)
             }
         }
 
         scope {
             try container.writeWAL()
-            assertEqual(container.backup.items.count, 0)
+            assertEqual(container.undo.items.count, 0)
             assertEqual(container.remove(guest.id), guest)
-            assertEqual(container.backup.items.count, 1)
+            assertEqual(container.undo.items.count, 1)
             try container.writeWAL()
         }
 
@@ -125,6 +125,7 @@ final class PersistenceTests: TestCase {
             try container.insert(User(name: "second"))
             try container.insert(User(name: "third"))
 
+            try storage.writeWAL()
             try storage.makeSnapshot()
         }
 
@@ -138,6 +139,39 @@ final class PersistenceTests: TestCase {
 
             let users = try storage.container(for: User.self)
             assertEqual(users.count, 3)
+        }
+    }
+
+    func testContainerSnapshotWithoutWAL() {
+        struct User: Entity {
+            let name: String
+            var id: String {
+                return name
+            }
+        }
+
+        let path = temp.appending(#function)
+
+        scope {
+            let storage = try Storage(at: path)
+            let container = try storage.container(for: User.self)
+            try container.insert(User(name: "first"))
+            try container.insert(User(name: "second"))
+            try container.insert(User(name: "third"))
+
+            try storage.makeSnapshot()
+        }
+
+        let containerPath = path.appending("User")
+        assertTrue(File.isExists(at: containerPath.appending("snapshot")))
+
+        scope {
+            let storage = try Storage(at: path)
+            storage.register(User.self)
+            try storage.restore()
+
+            let users = try storage.container(for: User.self)
+            assertEqual(users.count, 0)
         }
     }
 }

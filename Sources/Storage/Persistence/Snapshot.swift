@@ -16,7 +16,8 @@ struct Snapshot {
             self.decoder = decoder
         }
 
-        convenience init(from file: File, decoder: StreamDecoder) throws {
+        convenience
+        init(from file: File, decoder: StreamDecoder) throws {
             let file = try file.open(flags: .read)
             try self.init(from: file.inputStream, decoder: decoder)
         }
@@ -31,27 +32,31 @@ struct Snapshot {
     }
 
     class Writer<T: Entity> {
-        let output: StreamWriter
+        let stream: StreamWriter
         let encoder: StreamEncoder
 
-        init(to file: File, encoder: StreamEncoder) throws {
-            try file.create()
-            let stream = try file.open(flags: [.create, .write]).outputStream
-            try stream.seek(to: .end)
-            self.output = stream
+        init(to stream: StreamWriter, encoder: StreamEncoder) {
+            self.stream = stream
             self.encoder = encoder
         }
 
+        convenience
+        init(to file: File, encoder: StreamEncoder) throws {
+            try file.create()
+            let stream = try file.open(flags: [.create, .write]).outputStream
+            self.init(to: stream, encoder: encoder)
+        }
+
         func write(header: Header) throws {
-            try encoder.write(header, to: output)
+            try encoder.write(header, to: stream)
         }
 
         func write(_ value: T) throws {
-            try encoder.write(value, to: output)
+            try encoder.write(value, to: stream)
         }
 
         func flush() throws {
-            try output.flush()
+            try stream.flush()
         }
     }
 }

@@ -14,6 +14,10 @@ final class BinaryServerTests: TestCase {
         async.setUp(Fiber.self)
     }
 
+    override func tearDown() {
+        try? Directory.remove(at: temp)
+    }
+
     func testBinaryProtocol() {
         struct Test: Codable, Equatable, Entity {
             let id: String

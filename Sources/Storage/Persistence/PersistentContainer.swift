@@ -1,14 +1,15 @@
 import File
 
-protocol ContainerProtocol {
-    var count: Int { get }
-
+protocol PersistentContainer {
     func restore() throws
     func writeWAL() throws
     func makeSnapshot() throws
 }
 
-extension Storage.Container: ContainerProtocol {
+extension Storage.Container: PersistentContainer {
+
+    // MARK: Restore
+
     func restore() throws {
         let snapshot = File(name: "snapshot", at: path.appending(name))
         if snapshot.isExists {
@@ -31,10 +32,12 @@ extension Storage.Container: ContainerProtocol {
         }
     }
 
+    // MARK: WAL
+
     func writeWAL() throws {
         let wal = File(name: "wal", at: path.appending(name))
         let writer = try WAL.Writer<T>(to: wal, encoder: coder)
-        for (key, action) in backup.items {
+        for (key, action) in undo.items {
             switch action {
             case .delete:
                 switch items[key] {
@@ -52,16 +55,19 @@ extension Storage.Container: ContainerProtocol {
                 }
             }
         }
-        backup.removeAll()
+        undo.removeAll()
     }
+
+    // MARK: Snapshot
 
     func makeSnapshot() throws {
         let snapshot = File(name: "snapshot", at: path.appending(name))
         let writer = try Snapshot.Writer<T>(to: snapshot, encoder: coder)
-        try writer.write(header: .init(name: name, count: count))
+        try writer.write(header: .init(name: name, count: items.count))
         for (key, entity) in items {
-            switch backup.getLatestPersistentValue(forKey: key) {
-            case .some(let value): try writer.write(value)
+            switch undo.items[key] {
+            case .some(.delete): continue
+            case .some(.restore(let value)): try writer.write(value)
             case .none: try writer.write(entity)
             }
         }

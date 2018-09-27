@@ -1,10 +1,9 @@
 import File
-import JSON
 import Stream
 
 struct WAL {
     enum Record<T: Entity>: Equatable {
-        enum Action: Int, Codable {
+        enum Action: String, Codable {
             case upsert
             case delete
         }
@@ -22,14 +21,15 @@ struct WAL {
         let stream: StreamReader
         let decoder: StreamDecoder
 
-        init(from stream: StreamReader, decoder: StreamDecoder) throws {
+        init(from stream: StreamReader, decoder: StreamDecoder) {
             self.stream = stream
             self.decoder = decoder
         }
 
-        convenience init(from file: File, decoder: StreamDecoder) throws {
+        convenience
+        init(from file: File, decoder: StreamDecoder) throws {
             let file = try file.open(flags: .read)
-            try self.init(from: file.inputStream, decoder: decoder)
+            self.init(from: file.inputStream, decoder: decoder)
         }
 
         func readNext() throws -> Record<T>? {
@@ -38,10 +38,10 @@ struct WAL {
     }
 
     class Writer<T: Entity> {
-        let encoder: StreamEncoder
         var stream: StreamWriter
+        let encoder: StreamEncoder
 
-        init(to stream: StreamWriter, encoder: StreamEncoder) throws {
+        init(to stream: StreamWriter, encoder: StreamEncoder) {
             self.stream = stream
             self.encoder = encoder
         }
@@ -53,7 +53,7 @@ struct WAL {
             }
             let stream = try file.open(flags: [.write, .create]).outputStream
             try stream.seek(to: .end)
-            try self.init(to: stream, encoder: encoder)
+            self.init(to: stream, encoder: encoder)
         }
 
         func append(_ record: Record<T>) throws {
