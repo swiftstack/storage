@@ -81,9 +81,9 @@ extension Storage {
 }
 
 extension Storage {
-    func writeWAL() throws {
+    func writeLog() throws {
         for (_, container) in containers {
-            try container.writeWAL()
+            try container.writeLog()
         }
     }
 

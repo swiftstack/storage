@@ -19,8 +19,8 @@ public class SharedStorage {
                 // reschedule
                 async.yield()
                 do {
-                    Log.debug("WRITING WAL")
-                    try self.storage.writeWAL()
+                    Log.debug("writing log")
+                    try self.storage.writeLog()
                     self.broadcast.dispatch(true)
                 } catch {
                     Log.error("can't write log: \(error)")

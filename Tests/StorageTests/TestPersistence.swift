@@ -45,16 +45,16 @@ final class PersistenceTests: TestCase {
         }
 
         scope {
-            try container.writeWAL()
+            try container.writeLog()
             assertEqual(container.undo.items.count, 0)
             assertEqual(container.remove(guest.id), guest)
             assertEqual(container.undo.items.count, 1)
-            try container.writeWAL()
+            try container.writeLog()
         }
 
         scope {
             let path = path.appending("User")
-            let file = File(name: "wal", at: path)
+            let file = File(name: "log", at: path)
             let wal = try WAL.Reader<User>(from: file)
             var records = [WAL.Record<User>]()
             while let next = try wal.readNext() {
@@ -90,7 +90,7 @@ final class PersistenceTests: TestCase {
 
         scope {
             let path = temp.appending(#function).appending("User")
-            let file = File(name: "wal", at: path)
+            let file = File(name: "log", at: path)
             let wal = try WAL.Writer<User>(to: file)
             try records.forEach(wal.append)
         }
@@ -117,6 +117,7 @@ final class PersistenceTests: TestCase {
         }
 
         let path = temp.appending(#function)
+        let dataPath = path.appending("User")
 
         scope {
             let storage = try Storage(at: path)
@@ -125,12 +126,13 @@ final class PersistenceTests: TestCase {
             try container.insert(User(name: "second"))
             try container.insert(User(name: "third"))
 
-            try storage.writeWAL()
-            try storage.makeSnapshot()
-        }
+            try storage.writeLog()
+            assertTrue(File.isExists(at: dataPath.appending("log")))
 
-        let containerPath = path.appending("User")
-        assertTrue(File.isExists(at: containerPath.appending("snapshot")))
+            try storage.makeSnapshot()
+            assertTrue(File.isExists(at: dataPath.appending("snapshot")))
+            assertFalse(File.isExists(at: dataPath.appending("log")))
+        }
 
         scope {
             let storage = try Storage(at: path)

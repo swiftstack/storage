@@ -78,7 +78,7 @@ final class SharedStorageTests: TestCase {
 
         scope {
             let walDirectory = temp.appending(#function).appending("Counter")
-            let walFile = File(name: "wal", at: walDirectory)
+            let walFile = File(name: "log", at: walDirectory)
             let reader = try WAL.Reader<Counter>(from: walFile)
             var records = [WAL.Record<Counter>]()
             while let record = try reader.readNext() {
