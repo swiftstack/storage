@@ -24,6 +24,7 @@ public class SharedStorage {
                 async.yield()
 
                 guard self.storage.isDirty else {
+                    self.broadcast.dispatch(true)
                     return
                 }
                 do {
