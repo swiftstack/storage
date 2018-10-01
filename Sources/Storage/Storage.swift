@@ -46,12 +46,19 @@ extension Storage {
         switch containers[Key(for: type)] {
         case .some(let container as Container<T>): return container
         case .some(_): throw Error.incompatibleType
-        case .none: return register(type)
+        case .none: return createContainer(for: type)
         }
     }
 
+    public func register<T: Entity>(_ type: T.Type) throws {
+        guard containers[Key(for: type)] == nil else {
+            throw Error.alreadyExista
+        }
+        createContainer(for: type)
+    }
+
     @discardableResult
-    func register<T: Entity>(_ type: T.Type) -> Container<T> {
+    func createContainer<T: Entity>(for type: T.Type) -> Container<T> {
         let name = String(describing: type)
         let container = Container<T>(name: name, at: path, coder: coder)
         containers[Key(for: type)] = container

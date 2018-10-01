@@ -97,7 +97,7 @@ final class PersistenceTests: TestCase {
 
         scope {
             let storage = try Storage(at: temp.appending(#function))
-            storage.register(User.self)
+            try storage.register(User.self)
             try storage.restore()
 
             let users = try storage.container(for: User.self)
@@ -136,7 +136,7 @@ final class PersistenceTests: TestCase {
 
         scope {
             let storage = try Storage(at: path)
-            storage.register(User.self)
+            try storage.register(User.self)
             try storage.restore()
 
             let users = try storage.container(for: User.self)
@@ -169,7 +169,7 @@ final class PersistenceTests: TestCase {
 
         scope {
             let storage = try Storage(at: path)
-            storage.register(User.self)
+            try storage.register(User.self)
             try storage.restore()
 
             let users = try storage.container(for: User.self)
