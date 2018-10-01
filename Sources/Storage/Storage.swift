@@ -6,7 +6,6 @@ public class Storage {
     public typealias Key = String
 
     var containers: [Key : PersistentContainer] = [:]
-    var functions: [String : StoredProcedure] = [:]
 
     let path: Path
     let coder: StreamCoder
@@ -16,7 +15,6 @@ public class Storage {
         self.coder = coder
     }
 }
-
 
 // MARK: Key shim
 
@@ -29,7 +27,8 @@ extension Storage.Key {
 // MARK: Containers
 
 extension Storage {
-    enum Error: String, Swift.Error {
+    public enum Error: String, Swift.Error {
+        case alreadyExista = "a container for the type is already exists"
         case invalidKind = "invalid kind, please use struct or enum"
         case incompatibleType = "the container was created for another type"
     }
@@ -66,28 +65,16 @@ extension Storage {
     }
 }
 
-// MARK: Stored procedures
-
-extension Storage {
-    public func registerFunction(
-        name: String,
-        body: @escaping StoredProcedure)
-    {
-        functions[name] = body
-    }
-
-    public func call(
-        _ name: String,
-        with arguments: [String : String]) throws -> Encodable?
-    {
-        guard let function = functions[name] else {
-            return nil
+extension Storage: PersistentContainer {
+    var isDirty: Bool {
+        for (_, container) in containers {
+            if container.isDirty {
+                return true
+            }
         }
-        return try function(arguments)
+        return false
     }
-}
 
-extension Storage {
     func writeLog() throws {
         for (_, container) in containers {
             try container.writeLog()

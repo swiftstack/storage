@@ -21,7 +21,8 @@ final class ServerTests: TestCase {
     func testServer() {
         scope {
             let storage = try Storage(at: temp.appending(#function))
-            assertNotNil(try Server(for: storage))
+            let sharedStorage = SharedStorage(for: storage)
+            assertNotNil(try Server(for: sharedStorage))
         }
     }
 }

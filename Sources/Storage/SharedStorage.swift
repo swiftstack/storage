@@ -4,10 +4,12 @@ import Fiber
 public class SharedStorage {
     let storage: Storage
     let broadcast: Broadcast<Bool>
+    let procedures: StoredProcedures
 
     public init(for storage: Storage) {
         self.storage = storage
         self.broadcast = .init()
+        self.procedures = .init(for: storage)
     }
 
     var isNewCycle: Bool = true
@@ -16,8 +18,14 @@ public class SharedStorage {
         if isNewCycle {
             isNewCycle = false
             async.task { [unowned self] in
-                // reschedule
+                defer { self.isNewCycle = true }
+                // move the task to the end of the loop cycle
+                // so it runs after all the clients have been processed
                 async.yield()
+
+                guard self.storage.isDirty else {
+                    return
+                }
                 do {
                     Log.debug("writing log")
                     try self.storage.writeLog()
@@ -26,7 +34,6 @@ public class SharedStorage {
                     Log.error("can't write log: \(error)")
                     self.broadcast.dispatch(false)
                 }
-                self.isNewCycle = true
             }
         }
     }
@@ -51,10 +58,65 @@ public class SharedStorage {
 
     public func call(
         _ function: String,
-        with arguments: [String : String]) throws -> Encodable?
+        using decoder: Decoder? = nil) throws -> Encodable?
     {
         return try syncronized {
-            try storage.call(function, with: arguments)
+            switch decoder {
+            case .some(let decoder):
+                return try procedures.call(function, using: decoder)
+            case .none:
+                return try procedures.call(function)
+            }
         }
+    }
+}
+
+extension SharedStorage {
+    public func registerProcedure<T: Entity>(
+        name: String,
+        requires container: T.Type,
+        body: @escaping (Storage.Container<T>) throws -> Encodable)
+    {
+        procedures.register(
+            name: name,
+            requires: container,
+            body: body)
+    }
+
+    public func registerProcedure<Arguments: Decodable, T: Entity>(
+        name: String,
+        arguments: Arguments.Type,
+        requires container: T.Type,
+        body: @escaping (Arguments, Storage.Container<T>) throws -> Encodable)
+    {
+        procedures.register(
+            name: name,
+            arguments: arguments,
+            requires: container,
+            body: body)
+    }
+}
+
+extension SharedStorage {
+    public func register<T: Entity>(_ type: T.Type) throws {
+        try storage.register(type)
+    }
+}
+
+extension SharedStorage: PersistentContainer {
+    var isDirty: Bool {
+        return storage.isDirty
+    }
+
+    public func restore() throws {
+        try storage.restore()
+    }
+
+    func writeLog() throws {
+        try storage.writeLog()
+    }
+
+    func makeSnapshot() throws {
+        try storage.makeSnapshot()
     }
 }

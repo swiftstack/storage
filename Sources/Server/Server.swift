@@ -18,10 +18,14 @@ public class Server {
         case httpServerIsRunning = "http server is already running"
     }
 
-    public init(for storage: Storage) throws {
-        self.storage = SharedStorage(for: storage)
+    public init(for storage: SharedStorage) throws {
+        self.storage = storage
         self.httpServer = nil
         self.binaryServer = nil
+    }
+
+    public func restore() throws {
+        try storage.restore()
     }
 
     public func startBinaryServer(
@@ -42,7 +46,7 @@ public class Server {
         self.binaryServer = binaryServer
     }
 
-    public func createHTTPServer(
+    public func startHTTPServer(
         at host: String = "localhost",
         on port: Int = 1618) throws
     {

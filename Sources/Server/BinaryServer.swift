@@ -16,11 +16,6 @@ final class BinaryServer {
         self.server.onError = onError
     }
 
-    convenience
-    init(for storage: Storage, at host: String, on port: Int) throws {
-        try self.init(for: .init(for: storage), at: host, on: port)
-    }
-
     func binaryHandler(_ socket: Socket) {
         do {
             let stream = NetworkStream(socket: socket)
@@ -51,7 +46,8 @@ final class BinaryServer {
         do {
             switch request {
             case .rpc(let function, let arguments):
-                let result = try storage.call(function, with: arguments)
+                let decoder = MessagePackDecoder(arguments)
+                let result = try storage.call(function, using: decoder)
                 switch result {
                 case .some(let result):
                     return .output({ writer in

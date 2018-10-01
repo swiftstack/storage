@@ -34,15 +34,26 @@ final class BinaryServerTests: TestCase {
                 let storage = try Storage(at: self.temp.appending(#function))
                 let container = try storage.container(for: Test.self)
                 try container.insert(Test(id: "1", name: "test"))
-                storage.registerFunction(name: "test") { arguments in
-                    guard let name = arguments["username"] else {
-                        throw "zero arguments"
-                    }
+
+                let shared = SharedStorage(for: storage)
+
+                struct Arguments: Decodable {
+                    let username: String
+                }
+
+                shared.registerProcedure(
+                    name: "test",
+                    arguments: Arguments.self,
+                    requires: Test.self)
+                { arguments, con in
+                    let name = arguments.username
                     return container.first(where: \.name, equals: name)
                 }
 
+
+
                 let server = try BinaryServer(
-                    for: storage,
+                    for: shared,
                     at: "localhost",
                     on: 3001)
 

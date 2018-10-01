@@ -76,6 +76,12 @@ extension Storage {
 // MARK: secondary keys (not implemented) / fullscan
 
 extension Storage.Container {
+    public func select() -> [T] {
+        return items.lazy.map({ $0.value })
+    }
+}
+
+extension Storage.Container {
     public func first<C>(where key: KeyPath<T, C>, equals value: C) -> T?
         where C: Comparable
     {
@@ -98,4 +104,16 @@ extension Storage.Container {
             return remove(item.id)
         }
     }
+}
+
+public protocol TypeErasedContainerError: CustomStringConvertible {}
+
+extension Storage.Container.Error: TypeErasedContainerError {
+    public var description: String {
+        return self.rawValue
+    }
+}
+
+extension Storage {
+    public typealias ContainerError = TypeErasedContainerError
 }

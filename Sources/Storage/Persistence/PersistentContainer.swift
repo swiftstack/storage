@@ -1,12 +1,18 @@
 import File
 
 protocol PersistentContainer {
+    var isDirty: Bool { get }
+
     func restore() throws
     func writeLog() throws
     func makeSnapshot() throws
 }
 
 extension Storage.Container: PersistentContainer {
+
+    var isDirty: Bool {
+        return undo.items.count > 0
+    }
 
     // MARK: Log
 

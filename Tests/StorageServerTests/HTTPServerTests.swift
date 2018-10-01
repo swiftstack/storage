@@ -17,24 +17,38 @@ final class HTTPServerTests: TestCase {
         try? Directory.remove(at: temp)
     }
 
-    func testHTTPHandler() {
-        struct Test: Codable, Equatable, Entity {
-            let id: String
-            let name: String
-        }
+    struct Test: Codable, Equatable, Entity {
+        let id: String
+        let name: String
+    }
 
+    func createStorage(at path: Path) throws -> SharedStorage {
+        let storage = try Storage(at: path)
+        let container = try storage.container(for: Test.self)
+        try container.insert(Test(id: "1", name: "test"))
+
+        struct Arguments: Decodable {
+            let username: String
+        }
+        let shared = SharedStorage(for: storage)
+        shared.registerProcedure(
+            name: "test",
+            arguments: Arguments.self,
+            requires: Test.self)
+        { arguments, container in
+            let name = arguments.username
+            return container.first(where: \.name, equals: name)
+        }
+        return shared
+    }
+
+    func testHTTPHandler() {
         async.task { [unowned self] in
             defer { async.loop.terminate() }
             scope {
-                let storage = try Storage(at: self.temp.appending(#function))
-                let container = try storage.container(for: Test.self)
-                try container.insert(Test(id: "1", name: "test"))
-                storage.registerFunction(name: "test") { arguments in
-                    guard let name = arguments["username"] else {
-                        throw "zero arguments"
-                    }
-                    return container.first(where: \.name, equals: name)
-                }
+                let path = self.temp.appending(#function)
+                let storage = try self.createStorage(at: path)
+
                 let server = try HTTPServer(
                     for: storage,
                     at: "localhost",
@@ -46,7 +60,7 @@ final class HTTPServerTests: TestCase {
                     request: request,
                     function: "test")
                 assertEqual(response.string, "{\"id\":\"1\",\"name\":\"test\"}")
-                let user = try HTTP.Coder.decodeModel(Test.self, from: response)
+                let user = try HTTP.Coder.decode(Test.self, from: response)
                 assertEqual(user, Test(id: "1", name: "test"))
             }
         }
@@ -55,25 +69,12 @@ final class HTTPServerTests: TestCase {
     }
 
     func testHTTPFullStask() {
-        struct Test: Codable, Equatable, Entity {
-            let id: String
-            let name: String
-        }
-
         let serverStarted = Channel<Bool>(capacity: 1)
 
         async.task { [unowned self] in
             scope {
-                let storage = try Storage(at: self.temp.appending(#function))
-                let container = try storage.container(for: Test.self)
-                try container.insert(Test(id: "1", name: "test"))
-
-                storage.registerFunction(name: "test") { arguments in
-                    guard let name = arguments["username"] else {
-                        throw "zero arguments"
-                    }
-                    return container.first(where: \.name, equals: name)
-                }
+                let path = self.temp.appending(#function)
+                let storage = try self.createStorage(at: path)
 
                 let server = try HTTPServer(
                     for: storage,
@@ -93,7 +94,7 @@ final class HTTPServerTests: TestCase {
                 let client = HTTP.Client(host: "localhost", port: 4002)
                 let response = try client.get(path: "/call/test?username=test")
                 assertEqual(response.string, "{\"id\":\"1\",\"name\":\"test\"}")
-                let user = try HTTP.Coder.decodeModel(Test.self, from: response)
+                let user = try HTTP.Coder.decode(Test.self, from: response)
                 assertEqual(user, Test(id: "1", name: "test"))
             }
         }

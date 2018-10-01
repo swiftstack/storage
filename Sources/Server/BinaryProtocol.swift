@@ -22,7 +22,7 @@ enum BinaryProtocol {
     }
 
     enum Request {
-        case rpc(name: String, arguments: [String : String])
+        case rpc(name: String, arguments: MessagePack)
 
         enum RawType: UInt8 {
             case rpc = 1
@@ -46,11 +46,7 @@ enum BinaryProtocol {
             case .rpc:
                 var reader = MessagePackReader(stream)
                 let name = try reader.decode(String.self)
-                let temp = try reader.decode([MessagePack : MessagePack].self)
-                var arguments = [String : String]()
-                temp.forEach {
-                    arguments[$0.key.stringValue!] = $0.value.stringValue!
-                }
+                let arguments = try reader.decode()
                 self = .rpc(name: name, arguments: arguments)
             }
         }
@@ -61,11 +57,7 @@ enum BinaryProtocol {
                 try RawType.rpc.encode(to: stream)
                 var writer = MessagePackWriter(stream)
                 try writer.encode(name)
-                var temp = [MessagePack : MessagePack]()
-                arguments.forEach {
-                    temp[.string($0.key)] = .string($0.value)
-                }
-                try writer.encode(temp)
+                try writer.encode(arguments)
             }
         }
     }
