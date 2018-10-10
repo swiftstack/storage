@@ -53,12 +53,7 @@ final class HTTPServer {
             return try Response(status: .badRequest, body: Error(error))
         case let error as StoredProcedures.Error:
             switch error {
-            case .notFound:
-                return Response(status: .noContent)
-            case .extraArguments:
-                return try Response(status: .badRequest, body: Error(error))
-            case .missingArguments:
-                return try Response(status: .badRequest, body: Error(error))
+            case .notFound: return Response(status: .noContent)
             }
         case let error as DecodingError:
             Log.error("[http] decoding error: \(error.localizedDescription)")
