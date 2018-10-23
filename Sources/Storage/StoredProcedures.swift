@@ -1,4 +1,5 @@
-typealias StoredProcedure = (Decoder) throws -> Encodable?
+public typealias Result = Encodable?
+public typealias StoredProcedure = (Decoder) throws -> Result
 
 public final class StoredProcedures {
     let storage: Storage
@@ -16,7 +17,7 @@ public final class StoredProcedures {
     public func register<T: Entity>(
         name: String,
         requires container: T.Type,
-        body: @escaping (Storage.Container<T>) throws -> Encodable?)
+        body: @escaping (Storage.Container<T>) throws -> Result)
     {
         items[name] = { [unowned self] _ in
             let container = try self.storage.container(for: container)
@@ -28,7 +29,7 @@ public final class StoredProcedures {
         name: String,
         arguments: Arguments.Type,
         requires container: T.Type,
-        body: @escaping (Arguments, Storage.Container<T>) throws -> Encodable?)
+        body: @escaping (Arguments, Storage.Container<T>) throws -> Result)
     {
         items[name] = { [unowned self] decoder in
             let arguments = try Arguments(from: decoder)
@@ -39,7 +40,7 @@ public final class StoredProcedures {
 
     public func call(
         _ name: String,
-        using decoder: Decoder) throws -> Encodable?
+        using decoder: Decoder) throws -> Result
     {
         switch items[name] {
         case .none: throw Error.notFound

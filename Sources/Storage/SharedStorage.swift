@@ -59,7 +59,7 @@ public class SharedStorage {
 
     public func call(
         _ function: String,
-        using decoder: Decoder) throws -> Encodable?
+        using decoder: Decoder) throws -> Result
     {
         return try syncronized {
             return try procedures.call(function, using: decoder)
@@ -71,7 +71,7 @@ extension SharedStorage {
     public func registerProcedure<T: Entity>(
         name: String,
         requires container: T.Type,
-        body: @escaping (Storage.Container<T>) throws -> Encodable?)
+        body: @escaping (Storage.Container<T>) throws -> Result)
     {
         procedures.register(
             name: name,
@@ -83,7 +83,7 @@ extension SharedStorage {
         name: String,
         arguments: Arguments.Type,
         requires container: T.Type,
-        body: @escaping (Arguments, Storage.Container<T>) throws -> Encodable?)
+        body: @escaping (Arguments, Storage.Container<T>) throws -> Result)
     {
         procedures.register(
             name: name,
