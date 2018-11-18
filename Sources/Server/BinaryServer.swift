@@ -46,7 +46,7 @@ final class BinaryServer {
         do {
             switch request {
             case .rpc(let function, let arguments):
-                let decoder = MessagePackDecoder(arguments)
+                let decoder = MessagePack.Decoder(arguments)
                 let result = try storage.call(function, using: decoder)
                 switch result {
                 case .some(let result):
