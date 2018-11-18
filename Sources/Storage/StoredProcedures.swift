@@ -1,5 +1,5 @@
 public typealias Result = Encodable?
-public typealias StoredProcedure = (Decoder) throws -> Result
+public typealias StoredProcedure = (Decoder?) throws -> Result
 
 public final class StoredProcedures {
     let storage: Storage
@@ -7,6 +7,7 @@ public final class StoredProcedures {
 
     public enum Error: String, Swift.Error {
         case notFound = "procedure not found"
+        case missingDecoder = "the procedure requires decoder"
     }
 
     public init(for storage: Storage) {
@@ -31,7 +32,14 @@ public final class StoredProcedures {
         requires container: T.Type,
         body: @escaping (Arguments, Storage.Container<T>) throws -> Result)
     {
+        func unwrapDecoder(_ decoder: Decoder?) throws -> Decoder {
+            guard let decoder = decoder else {
+                throw Error.missingDecoder
+            }
+            return decoder
+        }
         items[name] = { [unowned self] decoder in
+            let decoder = try unwrapDecoder(decoder)
             let arguments = try Arguments(from: decoder)
             let container = try self.storage.container(for: container)
             return try body(arguments, container)
@@ -40,7 +48,7 @@ public final class StoredProcedures {
 
     public func call(
         _ name: String,
-        using decoder: Decoder) throws -> Result
+        using decoder: Decoder?) throws -> Result
     {
         switch items[name] {
         case .none: throw Error.notFound
