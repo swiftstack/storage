@@ -8,7 +8,7 @@ import MessagePack
 @testable import Server
 
 final class BinaryServerTests: TestCase {
-    let temp = Path(string: "/tmp/BinaryServerTests")
+    let temp = Path("/tmp/BinaryServerTests")
 
     override func setUp() {
         async.setUp(Fiber.self)

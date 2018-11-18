@@ -4,7 +4,7 @@ import File
 @testable import Storage
 
 final class StorageTests: TestCase {
-    let temp = Path(string: "/tmp/StorageTests")
+    let temp = Path("/tmp/StorageTests")
 
     override func tearDown() {
         try? Directory.remove(at: temp)

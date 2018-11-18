@@ -6,7 +6,7 @@ import Fiber
 @testable import Storage
 
 final class SharedStorageTests: TestCase {
-    let temp = Path(string: "/tmp/SharedStorageTests")
+    let temp = Path("/tmp/SharedStorageTests")
 
     override func setUp() {
         async.setUp(Fiber.self)
@@ -79,7 +79,7 @@ final class SharedStorageTests: TestCase {
 
         scope {
             let walDirectory = temp.appending(#function).appending("Counter")
-            let walFile = File(name: "log", at: walDirectory)
+            let walFile = try File(name: "log", at: walDirectory)
             let reader = try WAL.Reader<Counter>(from: walFile)
             var records = [WAL.Record<Counter>]()
             while let record = try reader.readNext() {

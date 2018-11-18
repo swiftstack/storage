@@ -11,7 +11,7 @@ extension UUID: Comparable {
 }
 
 final class ContainerTests: TestCase {
-    let temp = Path(string: "/tmp/ContainerTests")
+    let temp = Path("/tmp/ContainerTests")
 
     override func tearDown() {
         try? Directory.remove(at: temp)

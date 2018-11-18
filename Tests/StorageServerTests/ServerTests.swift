@@ -12,7 +12,7 @@ import struct Foundation.UUID
 extension String: Swift.Error {}
 
 final class ServerTests: TestCase {
-    let temp = Path(string: "/tmp/ServerTests")
+    let temp = Path("/tmp/ServerTests")
 
     override func setUp() {
         async.setUp(Fiber.self)

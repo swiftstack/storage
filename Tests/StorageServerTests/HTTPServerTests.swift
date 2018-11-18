@@ -7,7 +7,7 @@ import Fiber
 @testable import Server
 
 final class HTTPServerTests: TestCase {
-    let temp = Path(string: "/tmp/HTTPServerTests")
+    let temp = Path("/tmp/HTTPServerTests")
 
     override func setUp() {
         async.setUp(Fiber.self)
