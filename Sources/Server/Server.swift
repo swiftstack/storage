@@ -29,7 +29,7 @@ public class Server {
     }
 
     public func startBinaryServer(
-        at host: String = "localhost",
+        at host: String = "127.0.0.1",
         on port: Int = 16180) throws
     {
         guard self.binaryServer == nil else {
@@ -47,7 +47,7 @@ public class Server {
     }
 
     public func startHTTPServer(
-        at host: String = "localhost",
+        at host: String = "127.0.0.1",
         on port: Int = 1618) throws
     {
         guard self.httpServer == nil else {

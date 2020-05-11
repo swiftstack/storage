@@ -51,7 +51,7 @@ final class HTTPServerTests: TestCase {
 
                 let server = try HTTPServer(
                     for: storage,
-                    at: "localhost",
+                    at: "127.0.0.1",
                     on: 4001)
                 let request = Request(
                     url: "/call/test?username=test",
@@ -78,7 +78,7 @@ final class HTTPServerTests: TestCase {
 
                 let server = try HTTPServer(
                     for: storage,
-                    at: "localhost",
+                    at: "127.0.0.1",
                     on: 4002)
 
                 serverStarted.write(true)
@@ -91,7 +91,7 @@ final class HTTPServerTests: TestCase {
             defer { async.loop.terminate() }
             _ = serverStarted.read()
             scope {
-                let client = HTTP.Client(host: "localhost", port: 4002)
+                let client = HTTP.Client(host: "127.0.0.1", port: 4002)
                 let response = try client.get(path: "/call/test?username=test")
                 expect(response.string == "{\"id\":\"1\",\"name\":\"test\"}")
                 let user = try HTTP.Coder.decode(Test.self, from: response)

@@ -54,7 +54,7 @@ final class BinaryServerTests: TestCase {
 
                 let server = try BinaryServer(
                     for: shared,
-                    at: "localhost",
+                    at: "127.0.0.1",
                     on: 3001)
 
                 let output = OutputByteStream()
