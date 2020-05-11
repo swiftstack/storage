@@ -9,17 +9,14 @@ final class WALTests: TestCase {
         try? Directory.remove(at: temp)
     }
 
-    func testInit() {
-        scope {
-            struct User: Entity, Equatable {
-                var id: String
-                let name: String
-            }
-            let wal = try File(name: "log", at: temp.appending(#function))
-            try wal.create()
-            let reader = try WAL.Reader<User>(from: wal)
-            assertNotNil(reader)
+    func testInit() throws {
+        struct User: Entity, Equatable {
+            var id: String
+            let name: String
         }
+        let wal = try File(name: "log", at: temp.appending(#function))
+        try wal.create()
+        _ = try WAL.Reader<User>(from: wal)
     }
 
     func testWrite() {
@@ -37,8 +34,6 @@ final class WALTests: TestCase {
         scope {
             let writer = try WAL.Writer<User>(to: wal)
             try writer.append(.upsert(user))
-
-            assertNotNil(wal)
         }
 
         scope {
@@ -47,9 +42,9 @@ final class WALTests: TestCase {
             while let next = try reader.readNext() {
                 records.append(next)
             }
-            assertEqual(records.count, 1)
+            expect(records.count == 1)
             if let record = records.first {
-                assertEqual(record, .upsert(user))
+                expect(record == .upsert(user))
             }
         }
     }
@@ -86,9 +81,9 @@ final class WALTests: TestCase {
             while let next = try reader.readNext() {
                 records.append(next)
             }
-            assertEqual(records.count, 4)
+            expect(records.count == 4)
             if records.count == 4 {
-                assertEqual(records[0], .upsert(user))
+                expect(records[0] == .upsert(user))
             }
         }
     }

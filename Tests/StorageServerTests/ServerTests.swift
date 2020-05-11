@@ -18,11 +18,9 @@ final class ServerTests: TestCase {
         async.setUp(Fiber.self)
     }
 
-    func testServer() {
-        scope {
-            let storage = try Storage(at: temp.appending(#function))
-            let sharedStorage = SharedStorage(for: storage)
-            assertNotNil(try Server(for: sharedStorage))
-        }
+    func testServer() throws {
+        let storage = try Storage(at: temp.appending(#function))
+        let sharedStorage = SharedStorage(for: storage)
+        _ = try Server(for: sharedStorage)
     }
 }

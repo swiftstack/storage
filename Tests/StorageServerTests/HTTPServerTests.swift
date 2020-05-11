@@ -59,9 +59,9 @@ final class HTTPServerTests: TestCase {
                 let response = try server.httpHandler(
                     request: request,
                     function: "test")
-                assertEqual(response.string, "{\"id\":\"1\",\"name\":\"test\"}")
+                expect(response.string == "{\"id\":\"1\",\"name\":\"test\"}")
                 let user = try HTTP.Coder.decode(Test.self, from: response)
-                assertEqual(user, Test(id: "1", name: "test"))
+                expect(user == Test(id: "1", name: "test"))
             }
         }
 
@@ -93,9 +93,9 @@ final class HTTPServerTests: TestCase {
             scope {
                 let client = HTTP.Client(host: "localhost", port: 4002)
                 let response = try client.get(path: "/call/test?username=test")
-                assertEqual(response.string, "{\"id\":\"1\",\"name\":\"test\"}")
+                expect(response.string == "{\"id\":\"1\",\"name\":\"test\"}")
                 let user = try HTTP.Coder.decode(Test.self, from: response)
-                assertEqual(user, Test(id: "1", name: "test"))
+                expect(user == Test(id: "1", name: "test"))
             }
         }
 

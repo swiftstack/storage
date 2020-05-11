@@ -38,17 +38,17 @@ final class PersistenceTests: TestCase {
                 guest.id : .delete,
                 admin.id : .delete,
             ]
-            assertEqual(container.undo.items.count, expected.count)
+            expect(container.undo.items.count == expected.count)
             for (key, value) in expected {
-                assertEqual(container.undo.items[key], value)
+                expect(container.undo.items[key] == value)
             }
         }
 
         scope {
             try container.writeLog()
-            assertEqual(container.undo.items.count, 0)
-            assertEqual(container.remove(guest.id), guest)
-            assertEqual(container.undo.items.count, 1)
+            expect(container.undo.items.count == 0)
+            expect(container.remove(guest.id) == guest)
+            expect(container.undo.items.count == 1)
             try container.writeLog()
         }
 
@@ -60,7 +60,7 @@ final class PersistenceTests: TestCase {
             while let next = try wal.readNext() {
                 records.append(next)
             }
-            assertEqual(records.sorted(by: id), [
+            expect(records.sorted(by: id) == [
                 .upsert(user),
                 .upsert(guest),
                 .upsert(admin),
@@ -101,10 +101,10 @@ final class PersistenceTests: TestCase {
             try storage.restore()
 
             let users = try storage.container(for: User.self)
-            assertEqual(users.count, 2)
-            assertNil(users.get("guest"))
+            expect(users.count == 2)
+            expect(users.get("guest") == nil)
             let user = users.get("user")
-            assertEqual(user?.name, "user")
+            expect(user?.name == "user")
         }
     }
 
@@ -127,11 +127,11 @@ final class PersistenceTests: TestCase {
             try container.insert(User(name: "third"))
 
             try storage.writeLog()
-            assertTrue(File.isExists(at: dataPath.appending("log")))
+            expect(File.isExists(at: dataPath.appending("log")))
 
             try storage.makeSnapshot()
-            assertTrue(File.isExists(at: dataPath.appending("snapshot")))
-            assertFalse(File.isExists(at: dataPath.appending("log")))
+            expect(File.isExists(at: dataPath.appending("snapshot")))
+            expect(!File.isExists(at: dataPath.appending("log")))
         }
 
         scope {
@@ -140,7 +140,7 @@ final class PersistenceTests: TestCase {
             try storage.restore()
 
             let users = try storage.container(for: User.self)
-            assertEqual(users.count, 3)
+            expect(users.count == 3)
         }
     }
 
@@ -165,7 +165,7 @@ final class PersistenceTests: TestCase {
         }
 
         let containerPath = path.appending("User")
-        assertTrue(File.isExists(at: containerPath.appending("snapshot")))
+        expect(File.isExists(at: containerPath.appending("snapshot")))
 
         scope {
             let storage = try Storage(at: path)
@@ -173,7 +173,7 @@ final class PersistenceTests: TestCase {
             try storage.restore()
 
             let users = try storage.container(for: User.self)
-            assertEqual(users.count, 0)
+            expect(users.count == 0)
         }
     }
 }

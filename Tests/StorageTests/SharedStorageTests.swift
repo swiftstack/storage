@@ -16,11 +16,8 @@ final class SharedStorageTests: TestCase {
         try? Directory.remove(at: temp)
     }
 
-    func testInit() {
-        scope {
-            let storage = try Storage(at: temp.appending(#function))
-            assertNotNil(storage)
-        }
+    func testInit() throws {
+        _ = try Storage(at: temp.appending(#function))
     }
 
     func testSharedStorage() {
@@ -58,7 +55,7 @@ final class SharedStorageTests: TestCase {
                         fail()
                         return
                     }
-                    assertEqual(counter, Counter(id: "counter", value: 1))
+                    expect(counter == Counter(id: "counter", value: 1))
                 }
             }
 
@@ -69,7 +66,7 @@ final class SharedStorageTests: TestCase {
                         fail()
                         return
                     }
-                    assertEqual(counter, Counter(id: "counter", value: 2))
+                    expect(counter == Counter(id: "counter", value: 2))
                 }
                 async.loop.terminate()
             }
@@ -85,8 +82,8 @@ final class SharedStorageTests: TestCase {
             while let record = try reader.readNext() {
                 records.append(record)
             }
-            assertEqual(records.count, 1)
-            assertEqual(records, [.upsert(.init(id: "counter", value: 2))])
+            expect(records.count == 1)
+            expect(records == [.upsert(.init(id: "counter", value: 2))])
         }
     }
 }

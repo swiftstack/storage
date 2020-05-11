@@ -69,8 +69,8 @@ final class BinaryServerTests: TestCase {
                     return
                 }
                 let user = try MessagePack.decode(Test.self, from: stream)
-                assertEqual(user.id, "1")
-                assertEqual(user.name, "test")
+                expect(user.id == "1")
+                expect(user.name == "test")
             }
         }
 
