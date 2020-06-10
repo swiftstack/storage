@@ -1,6 +1,6 @@
 import Time
-import File
 import Async
+import FileSystem
 
 public class Storage {
     public typealias Key = String

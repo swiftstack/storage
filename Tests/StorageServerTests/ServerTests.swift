@@ -1,8 +1,8 @@
 import Test
-import File
 import HTTP
 import Fiber
 import Stream
+import FileSystem
 import MessagePack
 import struct Foundation.UUID
 
@@ -12,7 +12,7 @@ import struct Foundation.UUID
 extension String: Swift.Error {}
 
 final class ServerTests: TestCase {
-    let temp = Path("/tmp/ServerTests")
+    let temp = try! Path("/tmp/ServerTests")
 
     override func setUp() {
         async.setUp(Fiber.self)

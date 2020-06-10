@@ -1,13 +1,13 @@
 import Test
-import File
 import HTTP
 import Fiber
+import FileSystem
 
 @testable import Async
 @testable import Server
 
 final class HTTPServerTests: TestCase {
-    let temp = Path("/tmp/HTTPServerTests")
+    let temp = try! Path("/tmp/HTTPServerTests")
 
     override func setUp() {
         async.setUp(Fiber.self)
@@ -46,7 +46,7 @@ final class HTTPServerTests: TestCase {
         async.task { [unowned self] in
             defer { async.loop.terminate() }
             scope {
-                let path = self.temp.appending(#function)
+                let path = try self.temp.appending(#function)
                 let storage = try self.createStorage(at: path)
 
                 let server = try HTTPServer(
@@ -73,7 +73,7 @@ final class HTTPServerTests: TestCase {
 
         async.task { [unowned self] in
             scope {
-                let path = self.temp.appending(#function)
+                let path = try self.temp.appending(#function)
                 let storage = try self.createStorage(at: path)
 
                 let server = try HTTPServer(

@@ -1,14 +1,14 @@
 import Test
-import File
 import Fiber
 import Stream
+import FileSystem
 import MessagePack
 
 @testable import Async
 @testable import Server
 
 final class BinaryServerTests: TestCase {
-    let temp = Path("/tmp/BinaryServerTests")
+    let temp = try! Path("/tmp/BinaryServerTests")
 
     override func setUp() {
         async.setUp(Fiber.self)

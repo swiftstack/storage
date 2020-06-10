@@ -1,5 +1,5 @@
-import File
 import Stream
+import FileSystem
 import MessagePack
 
 final class MessagePackCoder: StreamCoder {

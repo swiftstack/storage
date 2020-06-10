@@ -1,9 +1,9 @@
 import Test
-import File
+import FileSystem
 @testable import Storage
 
 final class WALTests: TestCase {
-    let temp = Path("/tmp/WALTests")
+    let temp = try! Path("/tmp/WALTests")
 
     override func tearDown() {
         try? Directory.remove(at: temp)

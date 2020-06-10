@@ -1,12 +1,12 @@
 import Test
-import File
 import Fiber
+import FileSystem
 
 @testable import Async
 @testable import Storage
 
 final class SharedStorageTests: TestCase {
-    let temp = Path("/tmp/SharedStorageTests")
+    let temp = try! Path("/tmp/SharedStorageTests")
 
     override func setUp() {
         async.setUp(Fiber.self)
@@ -20,14 +20,16 @@ final class SharedStorageTests: TestCase {
         _ = try Storage(at: temp.appending(#function))
     }
 
-    func testSharedStorage() {
+    func testSharedStorage() throws {
         struct Counter: Codable, Equatable, Entity {
             let id: String
             var value: Int
         }
 
+        let temp = try self.temp.appending(#function)
+
         scope {
-            let storage = try Storage(at: self.temp.appending(#function))
+            let storage = try Storage(at: temp)
             let container = try storage.container(for: Counter.self)
             try container.insert(Counter(id: "counter", value: 0))
 
@@ -75,7 +77,7 @@ final class SharedStorageTests: TestCase {
         async.loop.run()
 
         scope {
-            let walDirectory = temp.appending(#function).appending("Counter")
+            let walDirectory = try temp.appending("Counter")
             let walFile = try File(name: "log", at: walDirectory)
             let reader = try WAL.Reader<Counter>(from: walFile)
             var records = [WAL.Record<Counter>]()

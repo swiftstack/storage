@@ -1,6 +1,6 @@
 import JSON
-import File
 import Stream
+import FileSystem
 
 public final class JsonCoder: StreamCoder {
     enum Error: Swift.Error {

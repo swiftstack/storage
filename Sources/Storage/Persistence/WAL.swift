@@ -1,5 +1,5 @@
-import File
 import Stream
+import FileSystem
 
 struct WAL {
     enum Record<T: Entity>: Equatable {

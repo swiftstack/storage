@@ -1,8 +1,8 @@
 import Log
-import File
 import Async
 import Stream
 import Network
+import FileSystem
 import MessagePack
 
 final class BinaryServer {

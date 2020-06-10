@@ -1,4 +1,4 @@
-import File
+import FileSystem
 
 protocol PersistentContainer {
     var isDirty: Bool { get }
@@ -16,12 +16,12 @@ extension Storage.Container: PersistentContainer {
 
     // MARK: Log
 
-    var logPath: Path { return path.appending(name) }
-    var logName: String { return "log" }
-    var logBackupName: String { return "log.backup" }
+    var logPath: Path { try! path.appending(name) }
+    var logName: File.Name { try! .init("log") }
+    var logBackupName: File.Name { try! .init("log.backup") }
 
     func writeLog() throws {
-        let log = try File(name: logName, at: logPath)
+        let log = File(name: logName, at: logPath)
         let writer = try WAL.Writer<T>(to: log, encoder: coder)
         for (key, action) in undo.items {
             switch action {
@@ -50,13 +50,13 @@ extension Storage.Container: PersistentContainer {
         case alreadyInProgress = "Snapshot is already in progress"
     }
 
-    var snapshotPath: Path { return path.appending(name) }
-    var snapshotName: String { return "snapshot" }
-    var snapshotTempName: String { return "snapshot.temp" }
+    var snapshotPath: Path { try! path.appending(name) }
+    var snapshotName: File.Name { try! .init("snapshot") }
+    var snapshotTempName: File.Name { try! .init("snapshot.temp") }
 
     func makeSnapshot() throws {
         try startNewLog()
-        let snapshot = try File(name: snapshotTempName, at: snapshotPath)
+        let snapshot = File(name: snapshotTempName, at: snapshotPath)
         let writer = try Snapshot.Writer<T>(to: snapshot, encoder: coder)
         try writer.write(header: .init(name: name, count: items.count))
         for (key, entity) in items {
@@ -73,26 +73,26 @@ extension Storage.Container: PersistentContainer {
     }
 
     func startNewLog() throws {
-        guard !File.isExists(at: logPath.appending(logBackupName)) else {
+        guard !File.isExists(name: logBackupName, at: logPath) else {
             throw SnapshotError.alreadyInProgress
         }
 
-        let log = try File(name: logName, at: logPath)
+        let log = File(name: logName, at: logPath)
         if log.isExists {
             try log.rename(to: logBackupName)
         }
     }
 
     func removeLog() throws {
-        let logBackup = try File(name: logBackupName, at: logPath)
+        let logBackup = File(name: logBackupName, at: logPath)
         if logBackup.isExists {
             try logBackup.remove()
         }
     }
 
     func replaceSnapshot() throws {
-        let oldSnapshot = try File(name: snapshotName, at: snapshotPath)
-        let newSnapshot = try File(name: snapshotTempName, at: snapshotPath)
+        let oldSnapshot = File(name: snapshotName, at: snapshotPath)
+        let newSnapshot = File(name: snapshotTempName, at: snapshotPath)
         if oldSnapshot.isExists {
             try oldSnapshot.remove()
         }
@@ -107,8 +107,8 @@ extension Storage.Container: PersistentContainer {
         try restoreLog(name: logName, at: logPath)
     }
 
-    func restoreSnapshot(name: String, at path: Path) throws {
-        let snapshot = try File(name: name, at: path)
+    func restoreSnapshot(name: File.Name, at path: Path) throws {
+        let snapshot = File(name: name, at: path)
         if snapshot.isExists {
             let reader = try Snapshot.Reader<T>(from: snapshot, decoder: coder)
             let _ = try reader.readHeader()
@@ -118,8 +118,8 @@ extension Storage.Container: PersistentContainer {
         }
     }
 
-    func restoreLog(name: String, at path: Path) throws {
-        let log = try File(name: name, at: path)
+    func restoreLog(name: File.Name, at path: Path) throws {
+        let log = File(name: name, at: path)
         if log.isExists {
             let reader = try WAL.Reader<T>(from: log, decoder: coder)
             while let record = try reader.readNext() {

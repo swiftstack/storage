@@ -1,10 +1,10 @@
 import Test
-import File
+import FileSystem
 
 @testable import Storage
 
 final class StorageTests: TestCase {
-    let temp = Path("/tmp/StorageTests")
+    let temp = try! Path("/tmp/StorageTests")
 
     override func tearDown() {
         try? Directory.remove(at: temp)

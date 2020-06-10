@@ -1,5 +1,5 @@
 import Test
-import File
+import FileSystem
 import struct Foundation.UUID
 
 @testable import Storage
@@ -11,7 +11,7 @@ extension UUID: Comparable {
 }
 
 final class ContainerTests: TestCase {
-    let temp = Path("/tmp/ContainerTests")
+    let temp = try! Path("/tmp/ContainerTests")
 
     override func tearDown() {
         try? Directory.remove(at: temp)

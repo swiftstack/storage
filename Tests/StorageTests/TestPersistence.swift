@@ -1,22 +1,22 @@
 import Test
-import File
+import FileSystem
 @testable import Storage
 
 final class PersistenceTests: TestCase {
-    let temp = Path("/tmp/PersistenceTests")
+    let temp = try! Path("/tmp/PersistenceTests")
 
     override func tearDown() {
         try? Directory.remove(at: temp)
     }
 
-    func testContainerWriteLog() {
+    func testContainerWriteLog() throws {
         struct User: Entity, Equatable {
             let name: String
 
             var id: String { return name }
         }
 
-        let path = temp.appending(#function)
+        let path = try temp.appending(#function)
 
         typealias Container = Storage.Container
 
@@ -53,7 +53,7 @@ final class PersistenceTests: TestCase {
         }
 
         scope {
-            let path = path.appending("User")
+            let path = try path.appending("User")
             let file = try File(name: "log", at: path)
             let wal = try WAL.Reader<User>(from: file)
             var records = [WAL.Record<User>]()
@@ -89,7 +89,7 @@ final class PersistenceTests: TestCase {
         ]
 
         scope {
-            let path = temp.appending(#function).appending("User")
+            let path = try temp.appending(#function).appending("User")
             let file = try File(name: "log", at: path)
             let wal = try WAL.Writer<User>(to: file)
             try records.forEach(wal.append)
@@ -108,7 +108,7 @@ final class PersistenceTests: TestCase {
         }
     }
 
-    func testContainerSnapshot() {
+    func testContainerSnapshot() throws {
         struct User: Entity {
             let name: String
             var id: String {
@@ -116,8 +116,8 @@ final class PersistenceTests: TestCase {
             }
         }
 
-        let path = temp.appending(#function)
-        let dataPath = path.appending("User")
+        let path = try temp.appending(#function)
+        let dataPath = try path.appending("User")
 
         scope {
             let storage = try Storage(at: path)
@@ -127,11 +127,15 @@ final class PersistenceTests: TestCase {
             try container.insert(User(name: "third"))
 
             try storage.writeLog()
-            expect(File.isExists(at: dataPath.appending("log")))
+
+            let log = try File.Name("log")
+            expect(File.isExists(name: log, at: dataPath))
 
             try storage.makeSnapshot()
-            expect(File.isExists(at: dataPath.appending("snapshot")))
-            expect(!File.isExists(at: dataPath.appending("log")))
+
+            let snapshot = try File.Name("snapshot")
+            expect(File.isExists(name: snapshot, at: dataPath))
+            expect(!File.isExists(name: log, at: dataPath))
         }
 
         scope {
@@ -144,7 +148,7 @@ final class PersistenceTests: TestCase {
         }
     }
 
-    func testContainerSnapshotWithoutWAL() {
+    func testContainerSnapshotWithoutWAL() throws {
         struct User: Entity {
             let name: String
             var id: String {
@@ -152,7 +156,7 @@ final class PersistenceTests: TestCase {
             }
         }
 
-        let path = temp.appending(#function)
+        let path = try temp.appending(#function)
 
         scope {
             let storage = try Storage(at: path)
@@ -164,8 +168,9 @@ final class PersistenceTests: TestCase {
             try storage.makeSnapshot()
         }
 
-        let containerPath = path.appending("User")
-        expect(File.isExists(at: containerPath.appending("snapshot")))
+        let containerPath = try path.appending("User")
+        let snapshot = try File.Name("snapshot")
+        expect(File.isExists(name: snapshot, at: containerPath))
 
         scope {
             let storage = try Storage(at: path)
