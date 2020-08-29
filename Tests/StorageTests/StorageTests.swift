@@ -15,7 +15,7 @@ final class StorageTests: TestCase {
     }
 
     final class Class: Entity {
-        let id: String = ""
+        let id: String
 
         static func == (
             lhs: StorageTests.Class,
