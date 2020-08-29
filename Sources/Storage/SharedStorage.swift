@@ -17,11 +17,11 @@ public class SharedStorage {
     func scheduleWALWriter() {
         if isNewCycle {
             isNewCycle = false
-            async.task { [unowned self] in
+            fiber { [unowned self] in
                 defer { self.isNewCycle = true }
                 // move the task to the end of the loop cycle
                 // so it runs after all the clients have been processed
-                async.yield()
+                yield()
 
                 guard self.storage.isDirty else {
                     self.broadcast.dispatch(true)

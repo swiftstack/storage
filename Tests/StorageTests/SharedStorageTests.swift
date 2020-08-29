@@ -1,16 +1,11 @@
 import Test
-import Fiber
+import Async
 import FileSystem
 
-@testable import Async
 @testable import Storage
 
 final class SharedStorageTests: TestCase {
     let temp = try! Path("/tmp/SharedStorageTests")
-
-    override func setUp() {
-        async.setUp(Fiber.self)
-    }
 
     override func tearDown() {
         try? Directory.remove(at: temp)
@@ -50,7 +45,7 @@ final class SharedStorageTests: TestCase {
                 return container.get("counter")
             }
 
-            async.task {
+            async {
                 scope {
                     let result = try shared.call("increment")
                     guard let counter = result as? Counter else {
@@ -61,7 +56,7 @@ final class SharedStorageTests: TestCase {
                 }
             }
 
-            async.task {
+            async {
                 scope {
                     let result = try shared.call("increment")
                     guard let counter = result as? Counter else {
@@ -70,11 +65,11 @@ final class SharedStorageTests: TestCase {
                     }
                     expect(counter == Counter(id: "counter", value: 2))
                 }
-                async.loop.terminate()
+                loop.terminate()
             }
         }
 
-        async.loop.run()
+        loop.run()
 
         scope {
             let walDirectory = try temp.appending("Counter")

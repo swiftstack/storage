@@ -1,22 +1,17 @@
 import Test
 import HTTP
-import Fiber
+import Async
 import Stream
 import FileSystem
 import MessagePack
 import struct Foundation.UUID
 
-@testable import Async
 @testable import Server
 
 extension String: Swift.Error {}
 
 final class ServerTests: TestCase {
     let temp = try! Path("/tmp/ServerTests")
-
-    override func setUp() {
-        async.setUp(Fiber.self)
-    }
 
     func testServer() throws {
         let storage = try Storage(at: temp.appending(#function))

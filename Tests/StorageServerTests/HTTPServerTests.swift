@@ -1,17 +1,14 @@
 import Test
 import HTTP
-import Fiber
+import Async
 import FileSystem
 
-@testable import Async
+import class Fiber.Channel
+
 @testable import Server
 
 final class HTTPServerTests: TestCase {
     let temp = try! Path("/tmp/HTTPServerTests")
-
-    override func setUp() {
-        async.setUp(Fiber.self)
-    }
 
     override func tearDown() {
         try? Directory.remove(at: temp)
@@ -43,8 +40,8 @@ final class HTTPServerTests: TestCase {
     }
 
     func testHTTPHandler() {
-        async.task { [unowned self] in
-            defer { async.loop.terminate() }
+        async { [unowned self] in
+            defer { loop.terminate() }
             scope {
                 let path = try self.temp.appending(#function)
                 let storage = try self.createStorage(at: path)
@@ -65,13 +62,13 @@ final class HTTPServerTests: TestCase {
             }
         }
 
-        async.loop.run()
+        loop.run()
     }
 
     func testHTTPFullStask() {
         let serverStarted = Channel<Bool>(capacity: 1)
 
-        async.task { [unowned self] in
+        async { [unowned self] in
             scope {
                 let path = try self.temp.appending(#function)
                 let storage = try self.createStorage(at: path)
@@ -87,8 +84,8 @@ final class HTTPServerTests: TestCase {
             }
         }
 
-        async.task {
-            defer { async.loop.terminate() }
+        async {
+            defer { loop.terminate() }
             _ = serverStarted.read()
             scope {
                 let client = HTTP.Client(host: "127.0.0.1", port: 4002)
@@ -99,6 +96,6 @@ final class HTTPServerTests: TestCase {
             }
         }
 
-        async.loop.run()
+        loop.run()
     }
 }

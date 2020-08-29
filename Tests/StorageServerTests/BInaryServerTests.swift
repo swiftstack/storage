@@ -1,18 +1,13 @@
 import Test
-import Fiber
+import Async
 import Stream
 import FileSystem
 import MessagePack
 
-@testable import Async
 @testable import Server
 
 final class BinaryServerTests: TestCase {
     let temp = try! Path("/tmp/BinaryServerTests")
-
-    override func setUp() {
-        async.setUp(Fiber.self)
-    }
 
     override func tearDown() {
         try? Directory.remove(at: temp)
@@ -24,8 +19,8 @@ final class BinaryServerTests: TestCase {
             let name: String
         }
 
-        async.task {
-            defer { async.loop.terminate() }
+        async {
+            defer { loop.terminate() }
             scope {
                 let request: BinaryProtocol.Request = .rpc(
                     name: "test",
@@ -74,6 +69,6 @@ final class BinaryServerTests: TestCase {
             }
         }
 
-        async.loop.run()
+        loop.run()
     }
 }

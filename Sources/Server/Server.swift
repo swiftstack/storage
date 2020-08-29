@@ -36,7 +36,7 @@ public class Server {
             throw Error.binaryServerIsRunning
         }
         let binaryServer = try BinaryServer(for: storage, at: host, on: port)
-        async.task { [unowned self] in
+        async { [unowned self] in
             do {
                 try binaryServer.start()
             } catch {
@@ -54,7 +54,7 @@ public class Server {
             throw Error.httpServerIsRunning
         }
         let httpServer = try HTTPServer(for: storage, at: host, on: port)
-        async.task { [unowned self] in
+        async { [unowned self] in
             do {
                 try httpServer.start()
             } catch {
