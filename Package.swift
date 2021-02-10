@@ -32,6 +32,9 @@ let package = Package(
                 "Log",
                 "HTTP",
                 "MessagePack"
+            ],
+            swiftSettings: [
+                .unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"])
             ]),
         .target(
             name: "Storage",
@@ -42,13 +45,22 @@ let package = Package(
                 "Time",
                 "JSON",
                 "MessagePack"
+            ],
+            swiftSettings: [
+                .unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"])
             ]),
         .testTarget(
             name: "StorageServerTests",
-            dependencies: ["Test", "Server", "Fiber"]),
+            dependencies: ["Test", "Server", "Fiber"],
+            swiftSettings: [
+                .unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"])
+            ]),
         .testTarget(
             name: "StorageTests",
-            dependencies: ["Test", "Storage"]),
+            dependencies: ["Test", "Storage"],
+            swiftSettings: [
+                .unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"])
+            ]),
     ]
 )
 
