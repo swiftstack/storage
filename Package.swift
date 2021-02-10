@@ -49,20 +49,39 @@ let package = Package(
             swiftSettings: [
                 .unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"])
             ]),
-        .testTarget(
-            name: "StorageServerTests",
-            dependencies: ["Test", "Server", "Fiber"],
-            swiftSettings: [
-                .unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"])
-            ]),
-        .testTarget(
-            name: "StorageTests",
-            dependencies: ["Test", "Storage"],
-            swiftSettings: [
-                .unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"])
-            ]),
     ]
 )
+
+// MARK: - tests
+
+testTarget("Server") { test in
+    test("BinaryServer")
+    test("HTTPServer")
+    test("Server")
+}
+
+testTarget("Storage") { test in
+    test("Container")
+    test("SharedStorage")
+    test("Storage")
+    test("Persistence")
+    test("WAL")
+}
+
+func testTarget(_ target: String, task: ((String) -> Void) -> Void) {
+    task { test in addTest(target: target, name: test) }
+}
+
+func addTest(target: String, name: String) {
+    package.targets.append(
+        .executableTarget(
+            name: "Tests/\(target)/\(name)",
+            dependencies: [.init(stringLiteral: target), "Event", "Test"],
+            path: "Tests/\(target)/\(name)",
+            swiftSettings: [
+                .unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"])
+            ]))
+}
 
 // MARK: - custom package source
 

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+set -e
+
+swift build
+
+export DYLD_LIBRARY_PATH=/Library/Developer/Toolchains/swift-latest.xctoolchain/usr/lib/swift/macosx
+
+.build/debug/Tests/Server/BinaryServer
+.build/debug/Tests/Server/HTTPServer
+.build/debug/Tests/Server/Server
+
+.build/debug/Tests/Storage/Container
+.build/debug/Tests/Storage/Persistence
+.build/debug/Tests/Storage/SharedStorage
+.build/debug/Tests/Storage/Storage
+.build/debug/Tests/Storage/WAL
