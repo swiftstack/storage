@@ -14,7 +14,7 @@ let package = Package(
     dependencies: [
         .package(name: "Async"),
         .package(name: "Time"),
-        .package(name: "AIO"),
+        .package(name: "FileSystem"),
         .package(name: "JSON"),
         .package(name: "MessagePack"),
         .package(name: "Fiber"),
@@ -28,7 +28,7 @@ let package = Package(
             dependencies: [
                 "Storage",
                 "Time",
-                .product(name: "File", package: "AIO"),
+                "FileSystem",
                 "Log",
                 "HTTP",
                 "MessagePack"
@@ -41,7 +41,7 @@ let package = Package(
             dependencies: [
                 "Async",
                 "Fiber",
-                .product(name: "File", package: "AIO"),
+                "FileSystem",
                 "Time",
                 "JSON",
                 "MessagePack"
