@@ -1,5 +1,4 @@
 import Log
-import Async
 import Stream
 import Network
 import FileSystem
@@ -16,7 +15,7 @@ final class BinaryServer {
         self.server.onError = onError
     }
 
-    func binaryHandler(_ socket: Socket) {
+    func binaryHandler(_ socket: Socket) async {
         do {
             let stream = NetworkStream(socket: socket)
             let input = BufferedInputStream(
@@ -24,34 +23,34 @@ final class BinaryServer {
                 capacity: 4096,
                 expandable: true)
             let output = BufferedOutputStream(baseStream: stream)
-            try handleBinaryConnection(input: input, output: output)
+            try await handleBinaryConnection(input: input, output: output)
         } catch {
-            onError(error)
+            await onError(error)
         }
     }
 
     func handleBinaryConnection(
         input: StreamReader,
-        output: StreamWriter) throws
+        output: StreamWriter) async throws
     {
-        while try input.cache(count: 1) {
-            let request = try BinaryProtocol.Request(from: input)
-            let response = handle(request)
-            try response.encode(to: output)
+        while try await input.cache(count: 1) {
+            let request = try await BinaryProtocol.Request.decode(from: input)
+            let response = await handle(request)
+            try await response.encode(to: output)
+            try await output.flush()
         }
-        try output.flush()
     }
 
-    func handle(_ request: BinaryProtocol.Request) -> BinaryProtocol.Response {
+    func handle(_ request: BinaryProtocol.Request) async -> BinaryProtocol.Response {
         do {
             switch request {
             case .rpc(let function, let arguments):
                 let decoder = MessagePack.Decoder(arguments)
-                let result = try storage.call(function, using: decoder)
+                let result = try await storage.call(function, using: decoder)
                 switch result {
                 case .some(let result):
                     return .output({ writer in
-                        try MessagePack.encode(encodable: result, to: writer)
+                        try await MessagePack.encode(encodable: result, to: writer)
                     })
                 case .none:
                     return .error(.functionNotFound)
@@ -62,11 +61,11 @@ final class BinaryServer {
         }
     }
 
-    func start() throws {
-        try server.start()
+    func start() async throws {
+        try await server.start()
     }
 
-    func onError(_ error: Swift.Error) {
-        Log.critical(String(describing: error))
+    func onError(_ error: Swift.Error) async {
+        await Log.critical(String(describing: error))
     }
 }

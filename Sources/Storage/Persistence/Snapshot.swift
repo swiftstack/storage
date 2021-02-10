@@ -22,12 +22,12 @@ struct Snapshot {
             try self.init(from: file.inputStream, decoder: decoder)
         }
 
-        func readHeader() throws -> Header? {
-            return try decoder.next(Header.self, from: stream)
+        func readHeader() async throws -> Header? {
+            try await decoder.next(Header.self, from: stream)
         }
 
-        func readNext() throws -> T? {
-            return try decoder.next(T.self, from: stream)
+        func readNext() async throws -> T? {
+            try await decoder.next(T.self, from: stream)
         }
     }
 
@@ -47,16 +47,16 @@ struct Snapshot {
             self.init(to: stream, encoder: encoder)
         }
 
-        func write(header: Header) throws {
-            try encoder.write(header, to: stream)
+        func write(header: Header) async throws {
+            try await encoder.write(header, to: stream)
         }
 
-        func write(_ value: T) throws {
-            try encoder.write(value, to: stream)
+        func write(_ value: T) async throws {
+            try await encoder.write(value, to: stream)
         }
 
-        func flush() throws {
-            try stream.flush()
+        func flush() async throws {
+            try await stream.flush()
         }
     }
 }

@@ -1,7 +1,6 @@
 import Log
-import Fiber
 
-public class SharedStorage {
+public actor class SharedStorage {
     let storage: Storage
     let broadcast: Broadcast<Bool>
     let procedures: StoredProcedures
@@ -17,40 +16,42 @@ public class SharedStorage {
     func scheduleWALWriter() {
         if isNewCycle {
             isNewCycle = false
-            fiber { [unowned self] in
+            _ = Task.runDetached(priority: .background) {
                 defer { self.isNewCycle = true }
                 // move the task to the end of the loop cycle
                 // so it runs after all the clients have been processed
-                yield()
+                // yield()
 
                 guard self.storage.isDirty else {
-                    self.broadcast.dispatch(true)
+                    await self.broadcast.dispatch(true)
                     return
                 }
                 do {
-                    Log.debug("writing log")
-                    try self.storage.writeLog()
-                    self.broadcast.dispatch(true)
+                    await Log.debug("writing log")
+                    try await self.storage.writeLog()
+                    await self.broadcast.dispatch(true)
                 } catch {
-                    Log.error("can't write log: \(error)")
-                    self.broadcast.dispatch(false)
+                    await Log.error("can't write log: \(error)")
+                    await self.broadcast.dispatch(false)
                 }
             }
         }
     }
 
-    func syncronized<T>(_ task: () throws -> T?) rethrows -> T? {
+    func syncronized<T>(_ task: () throws -> T?) async rethrows -> T? {
         scheduleWALWriter()
 
         let result = try task()
 
-        guard let success = broadcast.wait() else {
-            Log.error("the task was canceled")
+        let success = await broadcast.wait()
+
+        if await Task.isCancelled() {
+            await Log.error("the task was canceled")
             return nil
         }
 
         guard success else {
-            Log.error("the task failed")
+            await Log.error("the task failed")
             return nil
         }
 
@@ -59,9 +60,9 @@ public class SharedStorage {
 
     public func call(
         _ function: String,
-        using decoder: Decoder? = nil) throws -> Result
+        using decoder: Decoder? = nil) async throws -> Result
     {
-        return try syncronized {
+        return try await syncronized {
             return try procedures.call(function, using: decoder)
         }
     }
@@ -100,19 +101,19 @@ extension SharedStorage {
 }
 
 extension SharedStorage: PersistentContainer {
-    var isDirty: Bool {
+    @actorIndependent var isDirty: Bool {
         return storage.isDirty
     }
 
-    public func restore() throws {
-        try storage.restore()
+    public func restore() async throws {
+        try await storage.restore()
     }
 
-    func writeLog() throws {
-        try storage.writeLog()
+    func writeLog() async throws {
+        try await storage.writeLog()
     }
 
-    func makeSnapshot() throws {
-        try storage.makeSnapshot()
+    func makeSnapshot() async throws {
+        try await storage.makeSnapshot()
     }
 }

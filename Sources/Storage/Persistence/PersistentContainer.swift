@@ -3,9 +3,9 @@ import FileSystem
 protocol PersistentContainer {
     var isDirty: Bool { get }
 
-    func restore() throws
-    func writeLog() throws
-    func makeSnapshot() throws
+    func restore() async throws
+    func writeLog() async throws
+    func makeSnapshot() async throws
 }
 
 extension Storage.Container: PersistentContainer {
@@ -20,7 +20,7 @@ extension Storage.Container: PersistentContainer {
     var logName: File.Name { try! .init("log") }
     var logBackupName: File.Name { try! .init("log.backup") }
 
-    func writeLog() throws {
+    func writeLog() async throws {
         let log = File(name: logName, at: logPath)
         let writer = try WAL.Writer<T>(to: log, encoder: coder)
         for (key, action) in undo.items {
@@ -28,16 +28,16 @@ extension Storage.Container: PersistentContainer {
             case .delete:
                 switch items[key] {
                 case .some(let entity):
-                    try writer.append(.upsert(entity))
+                    try await writer.append(.upsert(entity))
                 case .none:
                     break
                 }
             case .restore:
                 switch items[key] {
                 case .some(let entity):
-                    try writer.append(.upsert(entity))
+                    try await writer.append(.upsert(entity))
                 case .none:
-                    try writer.append(.delete(key))
+                    try await writer.append(.delete(key))
                 }
             }
         }
@@ -54,19 +54,19 @@ extension Storage.Container: PersistentContainer {
     var snapshotName: File.Name { try! .init("snapshot") }
     var snapshotTempName: File.Name { try! .init("snapshot.temp") }
 
-    func makeSnapshot() throws {
+    func makeSnapshot() async throws {
         try startNewLog()
         let snapshot = File(name: snapshotTempName, at: snapshotPath)
         let writer = try Snapshot.Writer<T>(to: snapshot, encoder: coder)
-        try writer.write(header: .init(name: name, count: items.count))
+        try await writer.write(header: .init(name: name, count: items.count))
         for (key, entity) in items {
             switch undo.items[key] {
             case .some(.delete): continue
-            case .some(.restore(let value)): try writer.write(value)
-            case .none: try writer.write(entity)
+            case .some(.restore(let value)): try await writer.write(value)
+            case .none: try await writer.write(entity)
             }
         }
-        try writer.flush()
+        try await writer.flush()
         try snapshot.close()
         try replaceSnapshot()
         try removeLog()
@@ -101,28 +101,28 @@ extension Storage.Container: PersistentContainer {
 
     // MARK: Restore
 
-    func restore() throws {
-        try restoreSnapshot(name: snapshotName, at: snapshotPath)
-        try restoreLog(name: logBackupName, at: logPath)
-        try restoreLog(name: logName, at: logPath)
+    func restore() async throws {
+        try await restoreSnapshot(name: snapshotName, at: snapshotPath)
+        try await restoreLog(name: logBackupName, at: logPath)
+        try await restoreLog(name: logName, at: logPath)
     }
 
-    func restoreSnapshot(name: File.Name, at path: Path) throws {
+    func restoreSnapshot(name: File.Name, at path: Path) async throws {
         let snapshot = File(name: name, at: path)
         if snapshot.isExists {
             let reader = try Snapshot.Reader<T>(from: snapshot, decoder: coder)
-            let _ = try reader.readHeader()
-            while let next = try reader.readNext() {
+            let _ = try await reader.readHeader()
+            while let next = try await reader.readNext() {
                 items[next.id] = next
             }
         }
     }
 
-    func restoreLog(name: File.Name, at path: Path) throws {
+    func restoreLog(name: File.Name, at path: Path) async throws {
         let log = File(name: name, at: path)
         if log.isExists {
             let reader = try WAL.Reader<T>(from: log, decoder: coder)
-            while let record = try reader.readNext() {
+            while let record = try await reader.readNext() {
                 switch record {
                 case .upsert(let entity): items[entity.id] = entity
                 case .delete(let key): items[key] = nil

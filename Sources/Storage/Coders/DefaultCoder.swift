@@ -1,6 +1,7 @@
 import FileSystem
 
-typealias DefaultCoder = JsonCoder
+typealias DefaultCoder = MessagePackCoder
+typealias TestCoder = MessagePackCoder
 
 extension Storage {
     convenience

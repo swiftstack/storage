@@ -1,5 +1,4 @@
 import Time
-import Async
 import FileSystem
 
 public class Storage {
@@ -75,21 +74,21 @@ extension Storage: PersistentContainer {
         return false
     }
 
-    func writeLog() throws {
+    func writeLog() async throws {
         for (_, container) in containers {
-            try container.writeLog()
+            try await container.writeLog()
         }
     }
 
-    func makeSnapshot() throws {
+    func makeSnapshot() async throws {
         for (_, container) in containers {
-            try container.makeSnapshot()
+            try await container.makeSnapshot()
         }
     }
 
-    func restore() throws {
+    func restore() async throws {
         for (_, container) in containers {
-            try container.restore()
+            try await container.restore()
         }
     }
 }

@@ -1,5 +1,4 @@
 import Log
-import Async
 import FileSystem
 
 @_exported import Storage
@@ -9,8 +8,8 @@ public class Server {
     var binaryServer: BinaryServer?
     var httpServer: HTTPServer?
 
-    var onError: (Swift.Error) -> Void = { error in
-        Log.critical(String(describing: error))
+    var onError: (Swift.Error) async -> Void = { error in
+        await Log.critical(String(describing: error))
     }
 
     enum Error: String, Swift.Error {
@@ -24,42 +23,36 @@ public class Server {
         self.binaryServer = nil
     }
 
-    public func restore() throws {
-        try storage.restore()
+    public func restore() async throws {
+        try await storage.restore()
     }
 
     public func startBinaryServer(
         at host: String = "127.0.0.1",
-        on port: Int = 16180) throws
-    {
+        on port: Int = 16180
+    ) async throws {
         guard self.binaryServer == nil else {
             throw Error.binaryServerIsRunning
         }
         let binaryServer = try BinaryServer(for: storage, at: host, on: port)
-        async { [unowned self] in
-            do {
-                try binaryServer.start()
-            } catch {
-                self.onError(error)
-            }
+        _ = Task.runDetached {
+            do { try await binaryServer.start() }
+            catch { await self.onError(error) }
         }
         self.binaryServer = binaryServer
     }
 
     public func startHTTPServer(
         at host: String = "127.0.0.1",
-        on port: Int = 1618) throws
-    {
+        on port: Int = 1618
+    ) async throws {
         guard self.httpServer == nil else {
             throw Error.httpServerIsRunning
         }
         let httpServer = try HTTPServer(for: storage, at: host, on: port)
-        async { [unowned self] in
-            do {
-                try httpServer.start()
-            } catch {
-                self.onError(error)
-            }
+        _ = Task.runDetached {
+            do { try await httpServer.start() }
+            catch { await self.onError(error) }
         }
         self.httpServer = httpServer
     }

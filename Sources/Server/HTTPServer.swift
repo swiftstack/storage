@@ -1,6 +1,5 @@
 import Log
 import HTTP
-import Async
 
 final class HTTPServer {
     var server: HTTP.Server
@@ -13,8 +12,8 @@ final class HTTPServer {
         self.server.route(post: "/call/:string", to: httpHandler)
     }
 
-    func start() throws {
-        try server.start()
+    func start() async throws {
+        try await server.start()
     }
 
     struct Error: Encodable, Swift.Error {
@@ -31,36 +30,41 @@ final class HTTPServer {
 
     func httpHandler(
         request: Request,
-        function: String) throws -> Response
-    {
+        function: String
+    ) async throws -> Response {
         do {
-            let decoder = try HTTP.Coder.getDecoder(for: request)
-            guard let result = try storage.call(function, using: decoder) else {
+            let decoder = try await HTTP.Coder.getDecoder(for: request)
+            guard let result = try await storage.call(function, using: decoder)
+            else {
                 return Response(status: .noContent)
             }
             return try Response(body: result)
         } catch {
-            return try handleError(error)
+            return try await handleError(error)
         }
     }
 
-    func handleError(_ error: Swift.Error) throws -> Response {
+    func handleError(_ error: Swift.Error) async throws -> Response {
         switch error {
         case let error as Storage.Error:
-            return try Response(status: .badRequest, body: Error(error))
+            return try Response(
+                status: .badRequest,
+                body: Error(error))
         case let error as Storage.ContainerError:
-            Log.error("[http] storage error: \(error)")
-            return try Response(status: .badRequest, body: Error(error))
+            await Log.error("[http] storage error: \(error)")
+            return try Response(
+                status: .badRequest,
+                body: Error(error))
         case let error as StoredProcedures.Error:
             switch error {
             case .notFound: return Response(status: .noContent)
             case .missingDecoder: return Response(status: .badRequest)
             }
         case let error as DecodingError:
-            Log.error("[http] decoding error: \(error.localizedDescription)")
+            await Log.error("[http] decoding error: \(error.localizedDescription)")
             return Response(status: .badRequest)
         default:
-            Log.error("[http] unhandled exception: \(error)")
+            await Log.error("[http] unhandled exception: \(error)")
             return Response(status: .internalServerError)
         }
     }

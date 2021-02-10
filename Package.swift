@@ -12,12 +12,11 @@ let package = Package(
             targets: ["Storage"]),
     ],
     dependencies: [
-        .package(name: "Async"),
+        .package(name: "Event"),
         .package(name: "Time"),
         .package(name: "FileSystem"),
-        .package(name: "JSON"),
         .package(name: "MessagePack"),
-        .package(name: "Fiber"),
+        .package(name: "JSON"),
         .package(name: "HTTP"),
         .package(name: "Log"),
         .package(name: "Test")
@@ -26,12 +25,13 @@ let package = Package(
         .target(
             name: "Server",
             dependencies: [
+                "Event",
                 "Storage",
                 "Time",
                 "FileSystem",
-                "Log",
+                "MessagePack",
                 "HTTP",
-                "MessagePack"
+                "Log",
             ],
             swiftSettings: [
                 .unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"])
@@ -39,12 +39,10 @@ let package = Package(
         .target(
             name: "Storage",
             dependencies: [
-                "Async",
-                "Fiber",
                 "FileSystem",
+                "MessagePack",
                 "Time",
                 "JSON",
-                "MessagePack"
             ],
             swiftSettings: [
                 .unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"])

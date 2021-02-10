@@ -8,16 +8,16 @@ enum BinaryProtocol {
         case functionNotFound = 3
         case unknown = 4
 
-        init(from stream: StreamReader) throws {
-            let type = try stream.read(UInt8.self)
+        static func decode(from stream: StreamReader) async throws -> Self {
+            let type = try await stream.read(UInt8.self)
             guard let rawType = Error(rawValue: type) else {
                 throw Error.invalidRequest
             }
-            self = rawType
+            return rawType
         }
 
-        func encode(to stream: StreamWriter) throws {
-            try stream.write(self.rawValue)
+        func encode(to stream: StreamWriter) async throws {
+            try await stream.write(self.rawValue)
         }
     }
 
@@ -27,37 +27,37 @@ enum BinaryProtocol {
         enum RawType: UInt8 {
             case rpc = 1
 
-            init(from stream: StreamReader) throws {
-                let type = try stream.read(UInt8.self)
+            static func decode(from stream: StreamReader) async throws -> Self {
+                let type = try await stream.read(UInt8.self)
                 guard let rawType = RawType(rawValue: type) else {
                     throw Error.invalidRequestType
                 }
-                self = rawType
+                return rawType
             }
 
-            func encode(to stream: StreamWriter) throws {
-                try stream.write(rawValue)
+            func encode(to stream: StreamWriter) async throws {
+                try await stream.write(rawValue)
             }
         }
 
-        init(from stream: StreamReader) throws {
-            let type = try RawType(from: stream)
+        static func decode(from stream: StreamReader) async throws -> Self {
+            let type = try await RawType.decode(from: stream)
             switch type {
             case .rpc:
                 var reader = MessagePackReader(stream)
-                let name = try reader.decode(String.self)
-                let arguments = try reader.decode()
-                self = .rpc(name: name, arguments: arguments)
+                let name = try await reader.decode(String.self)
+                let arguments = try await reader.decode()
+                return .rpc(name: name, arguments: arguments)
             }
         }
 
-        func encode(to stream: StreamWriter) throws {
+        func encode(to stream: StreamWriter) async throws {
             switch self {
             case let .rpc(name, arguments):
-                try RawType.rpc.encode(to: stream)
+                try await RawType.rpc.encode(to: stream)
                 var writer = MessagePackWriter(stream)
-                try writer.encode(name)
-                try writer.encode(arguments)
+                try await writer.encode(name)
+                try await writer.encode(arguments)
             }
         }
     }
@@ -65,44 +65,44 @@ enum BinaryProtocol {
     enum Response {
         case error(Error)
         case input(StreamReader)
-        case output((StreamWriter) throws -> Void)
+        case output((StreamWriter) async throws -> Void)
 
         enum RawType: UInt8 {
             case error = 1
             case object = 2
 
-            init(from stream: StreamReader) throws {
-                let type = try stream.read(UInt8.self)
+            static func decode(from stream: StreamReader) async throws -> Self {
+                let type = try await stream.read(UInt8.self)
                 guard let rawType = RawType(rawValue: type) else {
                     throw Error.invalidRequestType
                 }
-                self = rawType
+                return rawType
             }
 
-            func encode(to stream: StreamWriter) throws {
-                try stream.write(rawValue)
+            func encode(to stream: StreamWriter) async throws {
+                try await stream.write(rawValue)
             }
         }
 
-        init(from stream: StreamReader) throws {
-            let type = try RawType(from: stream)
+        static func decode(from stream: StreamReader) async throws -> Self {
+            let type = try await RawType.decode(from: stream)
             switch type {
             case .error:
-                let error = try Error(from: stream)
-                self = .error(error)
+                let error = try await Error.decode(from: stream)
+                return .error(error)
             case .object:
-                self = .input(stream)
+                return .input(stream)
             }
         }
 
-        func encode(to stream: StreamWriter) throws {
+        func encode(to stream: StreamWriter) async throws {
             switch self {
             case .error(let error):
-                try stream.write(RawType.error.rawValue)
-                try error.encode(to: stream)
+                try await stream.write(RawType.error.rawValue)
+                try await error.encode(to: stream)
             case .output(let output):
-                try stream.write(RawType.object.rawValue)
-                try output(stream)
+                try await stream.write(RawType.object.rawValue)
+                try await output(stream)
             default:
                 throw Error.invalidRequestType
             }

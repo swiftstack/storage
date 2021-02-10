@@ -32,8 +32,8 @@ struct WAL {
             self.init(from: file.inputStream, decoder: decoder)
         }
 
-        func readNext() throws -> Record<T>? {
-            return try decoder.next(Record<T>.self, from: stream)
+        func readNext() async throws -> Record<T>? {
+            try await decoder.next(Record<T>.self, from: stream)
         }
     }
 
@@ -55,12 +55,12 @@ struct WAL {
             self.init(to: stream, encoder: encoder)
         }
 
-        func append(_ record: Record<T>) throws {
-            try encoder.write(record, to: stream)
+        func append(_ record: Record<T>) async throws {
+            try await encoder.write(record, to: stream)
         }
 
-        func flush() throws {
-            try stream.flush()
+        func flush() async throws {
+            try await stream.flush()
         }
     }
 }

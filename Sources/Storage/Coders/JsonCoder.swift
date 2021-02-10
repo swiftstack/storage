@@ -9,11 +9,11 @@ public final class JsonCoder: StreamCoder {
 
     func read<T>(
         from reader: StreamReader,
-        _ body: () throws -> T?) throws -> T?
+        _ body: () async throws -> T?) async throws -> T?
     {
         do {
-            let next = try body()
-            guard try reader.consume(.lf) else {
+            let next = try await body()
+            guard try await reader.consume(.lf) else {
                 throw Error.invalidFormat
             }
             return next
@@ -24,19 +24,18 @@ public final class JsonCoder: StreamCoder {
 
     public func next<T>(
         _ type: T.Type,
-        from reader: StreamReader) throws -> T?
-        where T: Decodable
-    {
-        return try read(from: reader) {
-            return try JSON.decode(type, from: reader)
+        from reader: StreamReader
+    ) async throws -> T? where T: Decodable {
+        try await read(from: reader) {
+            try await JSON.decode(type, from: reader)
         }
     }
 
-    public func write<T>(_ record: T, to writer: StreamWriter) throws
+    public func write<T>(_ record: T, to writer: StreamWriter) async throws
         where T: Encodable
     {
-        try JSON.encode(encodable: record, to: writer)
-        try writer.write(.lf)
+        try await JSON.encode(encodable: record, to: writer)
+        try await writer.write(.lf)
     }
 }
 
