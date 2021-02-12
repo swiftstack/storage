@@ -1,4 +1,5 @@
 import Test
+import IPC
 import Event
 import Stream
 import Network
@@ -71,9 +72,9 @@ test.case("BinaryProtocol") {
     await loop.run()
 }
 
-import Darwin
-
 test.case("BinaryFullStack") {
+    let condition = Condition()
+
     asyncTask {
         await scope {
             try await withTempPath(for: "BinaryFullStack") { path in
@@ -84,15 +85,17 @@ test.case("BinaryFullStack") {
                     at: "127.0.0.1",
                     on: 3003)
 
+                await condition.notify()
+
                 try await server.start()
             }
         }
     }
 
     asyncTask {
+        await condition.wait()
+
         await scope {
-            // FIXME:
-            usleep(100000)
             let client = Network.Client(host: "127.0.0.1", port: 3003)
             let networkStream = try await client.connect()
             let stream = BufferedStream(baseStream: networkStream)

@@ -1,4 +1,5 @@
 import Test
+import IPC
 import HTTP
 import Event
 import FileSystem
@@ -59,11 +60,8 @@ test.case("HTTPHandler") {
     await loop.run()
 }
 
-import Darwin
-
 test.case("HTTPFullStask") {
-    // FIXME:
-    //let serverStarted = Channel<Bool>(capacity: 1)
+    let condition = Condition()
 
     asyncTask {
         await scope {
@@ -75,8 +73,7 @@ test.case("HTTPFullStask") {
                     at: "127.0.0.1",
                     on: 4002)
 
-                // FIXME:
-                //serverStarted.write(true)
+                await condition.notify()
 
                 try await server.start()
             }
@@ -84,9 +81,8 @@ test.case("HTTPFullStask") {
     }
 
     asyncTask {
-        // FIXME:
-        //_ = serverStarted.read()
-        usleep(100000)
+        await condition.wait()
+
         await scope {
             let client = HTTP.Client(host: "127.0.0.1", port: 4002)
             let response = try await client.get(path: "/call/test?username=test")

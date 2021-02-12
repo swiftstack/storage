@@ -14,6 +14,7 @@ let package = Package(
     dependencies: [
         .package(name: "Event"),
         .package(name: "Time"),
+        .package(name: "IPC"),
         .package(name: "FileSystem"),
         .package(name: "MessagePack"),
         .package(name: "JSON"),
@@ -39,6 +40,7 @@ let package = Package(
         .target(
             name: "Storage",
             dependencies: [
+                "IPC",
                 "FileSystem",
                 "MessagePack",
                 "Time",
@@ -74,7 +76,7 @@ func addTest(target: String, name: String) {
     package.targets.append(
         .executableTarget(
             name: "Tests/\(target)/\(name)",
-            dependencies: [.init(stringLiteral: target), "Event", "Test"],
+            dependencies: ["Server", "Storage", "Event", "IPC", "Test"],
             path: "Tests/\(target)/\(name)",
             swiftSettings: [
                 .unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"])

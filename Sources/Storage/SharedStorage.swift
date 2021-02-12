@@ -1,4 +1,5 @@
 import Log
+import IPC
 
 public actor class SharedStorage {
     let storage: Storage
