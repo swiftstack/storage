@@ -90,6 +90,7 @@ test.case("container recovery from log") {
             for record in records {
                 try await wal.append(record)
             }
+            try await wal.flush()
         }
 
         await scope {

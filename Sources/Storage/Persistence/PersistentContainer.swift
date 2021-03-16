@@ -41,6 +41,7 @@ extension Storage.Container: PersistentContainer {
                 }
             }
         }
+        try await writer.flush()
         undo.removeAll()
     }
 
