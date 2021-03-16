@@ -5,19 +5,19 @@ import FileSystem
 import MessagePack
 
 final class BinaryServer {
-    var server: Network.Server
+    var server: TCP.Server
     var storage: SharedStorage
 
     init(for storage: SharedStorage, at host: String, on port: Int) throws {
         self.storage = storage
-        self.server = try Network.Server(host: host, port: port)
+        self.server = try TCP.Server(host: host, port: port)
         self.server.onClient = binaryHandler
         self.server.onError = onError
     }
 
-    func binaryHandler(_ socket: Socket) async {
+    func binaryHandler(_ socket: TCP.Socket) async {
         do {
-            let stream = NetworkStream(socket: socket)
+            let stream = TCP.Stream(socket: socket)
             let input = BufferedInputStream(
                 baseStream: stream,
                 capacity: 4096,

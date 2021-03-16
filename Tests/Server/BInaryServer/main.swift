@@ -96,7 +96,7 @@ test.case("BinaryFullStack") {
         await condition.wait()
 
         await scope {
-            let client = Network.Client(host: "127.0.0.1", port: 3003)
+            let client = TCP.Client(host: "127.0.0.1", port: 3003)
             let networkStream = try await client.connect()
             let stream = BufferedStream(baseStream: networkStream)
 
