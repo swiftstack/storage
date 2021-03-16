@@ -1,7 +1,7 @@
 import Log
 import IPC
 
-public actor class SharedStorage {
+public actor SharedStorage {
     let storage: Storage
     let broadcast: Broadcast<Bool>
     let procedures: StoredProcedures
@@ -46,7 +46,7 @@ public actor class SharedStorage {
 
         let success = await broadcast.wait()
 
-        if await Task.isCancelled() {
+        if Task.isCancelled {
             await Log.error("the task was canceled")
             return nil
         }
