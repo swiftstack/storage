@@ -35,6 +35,7 @@ let package = Package(
                 "Log",
             ],
             swiftSettings: [
+                .unsafeFlags(["-Xfrontend", "-disable-availability-checking"]),
                 .unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"])
             ]),
         .target(
@@ -47,6 +48,7 @@ let package = Package(
                 "JSON",
             ],
             swiftSettings: [
+                .unsafeFlags(["-Xfrontend", "-disable-availability-checking"]),
                 .unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"])
             ]),
     ]
@@ -79,6 +81,7 @@ func addTest(target: String, name: String) {
             dependencies: ["Server", "Storage", "Event", "IPC", "Test"],
             path: "Tests/\(target)/\(name)",
             swiftSettings: [
+                .unsafeFlags(["-Xfrontend", "-disable-availability-checking"]),
                 .unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"])
             ]))
 }
