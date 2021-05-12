@@ -2,7 +2,7 @@ import Log
 import IPC
 
 public actor SharedStorage {
-    let storage: Storage
+    nonisolated let storage: Storage
     let broadcast: Broadcast<Bool>
     let procedures: StoredProcedures
 
@@ -17,11 +17,10 @@ public actor SharedStorage {
     func scheduleWALWriter() {
         if isNewCycle {
             isNewCycle = false
-            _ = Task.runDetached(priority: .background) {
+            // append the task to the end of the loop cycle
+            // so it runs after all the clients have been processed
+            async {
                 defer { self.isNewCycle = true }
-                // move the task to the end of the loop cycle
-                // so it runs after all the clients have been processed
-                // yield()
 
                 guard self.storage.isDirty else {
                     await self.broadcast.dispatch(true)
@@ -102,7 +101,7 @@ extension SharedStorage {
 }
 
 extension SharedStorage: PersistentContainer {
-    @actorIndependent var isDirty: Bool {
+    nonisolated var isDirty: Bool {
         return storage.isDirty
     }
 
