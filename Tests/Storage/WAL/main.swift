@@ -31,6 +31,7 @@ test.case("wal write") {
         await scope {
             let writer = try WAL.Writer<User>(to: wal, encoder: TestCoder())
             try await writer.append(.upsert(user))
+            try await writer.flush()
         }
 
         await scope {
@@ -74,6 +75,7 @@ test.case("wal restore") {
             for record in records {
                 try await writer.append(record)
             }
+            try await writer.flush()
         }
 
         await scope {
