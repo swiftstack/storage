@@ -2,7 +2,7 @@ import Log
 import IPC
 
 public actor SharedStorage {
-    nonisolated let storage: Storage
+    let storage: Storage
     let broadcast: Broadcast<Bool>
     let procedures: StoredProcedures
 
