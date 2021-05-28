@@ -48,7 +48,8 @@ test.case("HTTPHandler") {
                 let response = try await server.httpHandler(
                     request: request,
                     function: "test")
-                expect(response.string == "{\"id\":\"1\",\"name\":\"test\"}")
+                let body = try await response.readBody(as: UTF8.self)
+                expect(body == "{\"id\":\"1\",\"name\":\"test\"}")
                 let user = try await HTTP.Coder.decode(Test.self, from: response)
                 expect(user == Test(id: "1", name: "test"))
             }
@@ -86,7 +87,8 @@ test.case("HTTPFullStask") {
         await scope {
             let client = HTTP.Client(host: "127.0.0.1", port: 4002)
             let response = try await client.get(path: "/call/test?username=test")
-            expect(response.string == "{\"id\":\"1\",\"name\":\"test\"}")
+            let body = try await response.readBody(as: UTF8.self)
+            expect(body == "{\"id\":\"1\",\"name\":\"test\"}")
             let user = try await HTTP.Coder.decode(Test.self, from: response)
             expect(user == Test(id: "1", name: "test"))
         }
