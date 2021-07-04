@@ -11,8 +11,7 @@ final class BinaryServer {
     init(for storage: SharedStorage, at host: String, on port: Int) throws {
         self.storage = storage
         self.server = try TCP.Server(host: host, port: port)
-        self.server.onClient = binaryHandler
-        self.server.onError = onError
+
     }
 
     func binaryHandler(_ socket: TCP.Socket) async {
@@ -62,6 +61,8 @@ final class BinaryServer {
     }
 
     func start() async throws {
+        await server.onClient(binaryHandler)
+        await server.onError(onError)
         try await server.start()
     }
 
