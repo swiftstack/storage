@@ -1,26 +1,19 @@
 import Test
 import FileSystem
-import struct Foundation.UUID
 
 @testable import Storage
 
 struct User: Entity, Equatable, Comparable {
-    let id: UUID
+    let id: Int
     var name: String
 
-    init(id: UUID = UUID(), name: String) {
+    init(id: Int = .random(in: (Int.min...Int.max)), name: String) {
         self.id = id
         self.name = name
     }
 
     static func < (lhs: User, rhs: User) -> Bool {
         return lhs.id < rhs.id
-    }
-}
-
-extension UUID: Comparable {
-    public static func < (lhs: UUID, rhs: UUID) -> Bool {
-        return lhs.hashValue < rhs.hashValue
     }
 }
 
