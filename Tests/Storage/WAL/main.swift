@@ -7,7 +7,7 @@ test.case("wal init") {
         var id: String
         let name: String
     }
-    try await withTempPath(for: "init") { path in
+    try withTempPath { path in
         let wal = try File(name: "log", at: path)
         try wal.create()
         _ = try WAL.Reader<User>(from: wal, decoder: TestCoder())
@@ -22,7 +22,7 @@ test.case("wal write") {
 
     let user = User(id: "1", name: "Tony")
 
-    try await withTempPath(for: "write") { path in
+    try await withTempPath { path in
 
         var wal: File {
             return try! File(name: "log", at: path)
@@ -65,7 +65,7 @@ test.case("wal restore") {
         .delete(guest.id)
     ]
 
-    try await withTempPath(for: "restore") { path in
+    try await withTempPath { path in
         var wal: File {
             return try! File(name: "log", at: path)
         }
@@ -93,14 +93,3 @@ test.case("wal restore") {
 }
 
 test.run()
-
-// FIXME: move to Test
-func withTempPath(for case: String, task: (Path) async throws -> Void) async throws {
-    let directory = try Directory(at: "/tmp/Tests/Storage/WAL/\(`case`)")
-    if directory.isExists {
-        try directory.remove()
-    }
-    try directory.create()
-    try await task(directory.path)
-    try directory.remove()
-}

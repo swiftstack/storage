@@ -5,7 +5,7 @@ import FileSystem
 @testable import Storage
 
 test.case("init") {
-    try await withTempPath { path in
+    try withTempPath { path in
         _ = try Storage(at: path)
     }
 }
@@ -83,14 +83,3 @@ test.case("SharedStorage") {
 }
 
 test.run()
-
-// FIXME: move to Test
-func withTempPath(_ task: (Path) async throws -> Void) async throws {
-    let directory = try Directory(at: "/tmp/Tests/Storage/SharedStorage")
-    if directory.isExists {
-        try directory.remove()
-    }
-    try directory.create()
-    try await task(directory.path)
-    try directory.remove()
-}

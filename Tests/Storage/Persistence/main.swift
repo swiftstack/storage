@@ -10,7 +10,7 @@ test.case("container write log") {
         var id: String { return name }
     }
 
-    try await withTempPath(for: "ContainerWriteLog") { path in
+    try await withTempPath { path in
         typealias Container = Storage.Container
 
         let container = Container<User>(
@@ -82,7 +82,7 @@ test.case("container recovery from log") {
         .delete(guest.id)
     ]
 
-    try await withTempPath(for: "ContainerRecoveryFromLog") { path in
+    try await withTempPath { path in
         await scope {
             let path = try path.appending("User")
             let file = try File(name: "log", at: path)
@@ -115,7 +115,7 @@ test.case("container snapshot") {
         }
     }
 
-    try await withTempPath(for: "ContainerSnapshot") { path in
+    try await withTempPath { path in
         await scope {
             let storage = try Storage(at: path)
             let container = try storage.container(for: User.self)
@@ -155,7 +155,7 @@ test.case("container snapshot without wal") {
         }
     }
 
-    try await withTempPath(for: "ContainerSnapshotWithoutWAL") { path in
+    try await withTempPath { path in
         await scope {
             let storage = try Storage(at: path)
             let container = try storage.container(for: User.self)
@@ -182,17 +182,6 @@ test.case("container snapshot without wal") {
 }
 
 test.run()
-
-// FIXME: move to Test
-func withTempPath(for case: String, task: (Path) async throws -> Void) async throws {
-    let directory = try Directory(at: "/tmp/Tests/Storage/Persistence/\(`case`)")
-    if directory.isExists {
-        try directory.remove()
-    }
-    try directory.create()
-    try await task(directory.path)
-    try directory.remove()
-}
 
 // MARK: utils
 

@@ -106,14 +106,3 @@ test.case("container update") {
 }
 
 test.run()
-
-// FIXME: move to Test
-func withTempPath(task: (Path) throws -> Void) throws {
-    let directory = try Directory(at: "/tmp/Tests/Storage/Container")
-    if directory.isExists {
-        try directory.remove()
-    }
-    try directory.create()
-    try task(directory.path)
-    try directory.remove()
-}

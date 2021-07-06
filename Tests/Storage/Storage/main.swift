@@ -4,7 +4,7 @@ import FileSystem
 @testable import Storage
 
 test.case("init") {
-    try withTempPath(for: "init") { path in
+    try withTempPath { path in
         _ = try Storage(at: path)
     }
 }
@@ -18,7 +18,7 @@ final class Class: Entity {
 }
 
 test.case("ClassType") {
-    try withTempPath(for: "ClassType") { path in
+    try withTempPath { path in
         let storage = try Storage(at: path)
         expect(throws: Storage.Error.invalidKind) {
             try storage.container(for: Class.self)
@@ -27,7 +27,7 @@ test.case("ClassType") {
 }
 
 test.case("Storage") {
-    try withTempPath(for: "Storage") { path in
+    try withTempPath { path in
         let storage = try Storage(at: path)
         struct User: Entity {
             let id: String
@@ -44,7 +44,7 @@ test.case("Storage") {
 }
 
 test.case("storage.isDirty") {
-    try withTempPath(for: "container.isDirty") { path in
+    try withTempPath { path in
         let storage = try Storage(at: path)
         struct User: Entity {
             var id: String
@@ -56,7 +56,7 @@ test.case("storage.isDirty") {
 }
 
 test.case("Container") {
-    try withTempPath(for: "Container") { path in
+    try withTempPath { path in
         let storage = try Storage(at: path)
         struct User: Entity {
             let name: String
@@ -69,17 +69,6 @@ test.case("Container") {
         let user = users.get("first")
         expect(user?.name == "first")
     }
-}
-
-// FIXME: move to Test
-func withTempPath(for case: String, task: (Path) throws -> Void) throws {
-    let directory = try Directory(at: "/tmp/Tests/Storage/Storage/\(`case`)")
-    if directory.isExists {
-        try directory.remove()
-    }
-    try directory.create()
-    try task(directory.path)
-    try directory.remove()
 }
 
 test.run()

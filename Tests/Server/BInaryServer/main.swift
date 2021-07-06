@@ -38,7 +38,7 @@ func createStorage(at path: Path) async throws -> SharedStorage {
 test.case("BinaryProtocol") {
     asyncTask {
         await scope {
-            try await withTempPath(for: "BinaryProtocol") { path in
+            try await withTempPath { path in
                 let storage = try await createStorage(at: path)
 
                 let server = try BinaryServer(
@@ -77,7 +77,7 @@ test.case("BinaryFullStack") {
 
     asyncTask {
         await scope {
-            try await withTempPath(for: "BinaryFullStack") { path in
+            try await withTempPath { path in
                 let storage = try await createStorage(at: path)
 
                 let server = try BinaryServer(
@@ -122,14 +122,3 @@ test.case("BinaryFullStack") {
 }
 
 test.run()
-
-// FIXME: move to Test
-func withTempPath(for case: String, task: (Path) async throws -> Void) async throws {
-    let directory = try Directory(at: "/tmp/Tests/Storage/Server/BinaryServer/\(`case`)")
-    if directory.isExists {
-        try directory.remove()
-    }
-    try directory.create()
-    try await task(directory.path)
-    try directory.remove()
-}
