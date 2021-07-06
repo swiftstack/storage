@@ -66,12 +66,7 @@ extension Storage {
 
 extension Storage: PersistentContainer {
     var isDirty: Bool {
-        for (_, container) in containers {
-            if container.isDirty {
-                return true
-            }
-        }
-        return false
+        containers.values.contains { $0.isDirty }
     }
 
     func writeLog() async throws {

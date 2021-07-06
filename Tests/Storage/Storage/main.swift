@@ -43,6 +43,18 @@ test.case("Storage") {
     }
 }
 
+test.case("storage.isDirty") {
+    try withTempPath(for: "container.isDirty") { path in
+        let storage = try Storage(at: path)
+        struct User: Entity {
+            var id: String
+        }
+        expect(storage.isDirty == false)
+        try storage.container(for: User.self).insert(User(id: "first"))
+        expect(storage.isDirty == true)
+    }
+}
+
 test.case("Container") {
     try withTempPath(for: "Container") { path in
         let storage = try Storage(at: path)
