@@ -27,7 +27,7 @@ extension Storage.Key {
 
 extension Storage {
     public enum Error: String, Swift.Error {
-        case alreadyExista = "a container for the type is already exists"
+        case alreadyExists = "a container for the type is already exists"
         case invalidKind = "invalid kind, please use struct or enum"
         case incompatibleType = "the container was created for another type"
     }
@@ -50,7 +50,7 @@ extension Storage {
 
     public func register<T: Entity>(_ type: T.Type) throws {
         guard containers[Key(for: type)] == nil else {
-            throw Error.alreadyExista
+            throw Error.alreadyExists
         }
         createContainer(for: type)
     }
