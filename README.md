@@ -5,7 +5,7 @@ Swift-oriented DBMS. Embedded and Not. Yet.
 ## Package.swift
 
 ```swift
-.package(url: "https://github.com/swift-stack/storage.git", .branch("fiber"))
+.package(url: "https://github.com/swiftstack/storage.git", .branch("fiber"))
 ```
 
 ## Usage
