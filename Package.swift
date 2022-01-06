@@ -20,7 +20,7 @@ let package = Package(
         .package(name: "JSON"),
         .package(name: "HTTP"),
         .package(name: "Log"),
-        .package(name: "Test")
+        .package(name: "Test"),
     ],
     targets: [
         .target(
