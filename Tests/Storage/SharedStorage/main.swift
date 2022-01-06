@@ -65,7 +65,7 @@ test.case("SharedStorage") {
                 }
             }
 
-            try await handle.get()
+            try await handle.value
         }
 
         await scope {

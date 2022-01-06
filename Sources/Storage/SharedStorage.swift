@@ -19,7 +19,7 @@ public actor SharedStorage {
             isNewCycle = false
             // append the task to the end of the loop cycle
             // so it runs after all the clients have been processed
-            async {
+            Task {
                 defer { self.isNewCycle = true }
 
                 guard self.storage.isDirty else {

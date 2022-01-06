@@ -35,7 +35,7 @@ public class Server {
             throw Error.binaryServerIsRunning
         }
         let binaryServer = try BinaryServer(for: storage, at: host, on: port)
-        _ = Task.runDetached {
+        _ = Task.detached {
             do { try await binaryServer.start() }
             catch { await self.onError(error) }
         }
@@ -50,7 +50,7 @@ public class Server {
             throw Error.httpServerIsRunning
         }
         let httpServer = try HTTPServer(for: storage, at: host, on: port)
-        _ = Task.runDetached {
+        _ = Task.detached {
             do { try await httpServer.start() }
             catch { await self.onError(error) }
         }
