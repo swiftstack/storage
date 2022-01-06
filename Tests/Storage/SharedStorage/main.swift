@@ -5,7 +5,7 @@ import FileSystem
 @testable import Storage
 
 test.case("init") {
-    try withTempPath { path in
+    try await withTempPath { path in
         _ = try Storage(at: path)
     }
 }

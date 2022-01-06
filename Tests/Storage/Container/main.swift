@@ -18,7 +18,7 @@ struct User: Entity, Equatable, Comparable {
 }
 
 test.case("container init") {
-    try withTempPath { path in
+    try await withTempPath { path in
         let storage = try Storage(at: path.appending("init"))
         let users = try storage.container(for: User.self)
         expect(users.count == 0)
@@ -26,7 +26,7 @@ test.case("container init") {
 }
 
 test.case("container insert") {
-    try withTempPath { path in
+    try await withTempPath { path in
         let storage = try Storage(at: path.appending("insert"))
         let users = try storage.container(for: User.self)
         expect(users.count == 0)
@@ -36,7 +36,7 @@ test.case("container insert") {
 }
 
 test.case("container first") {
-    try withTempPath { path in
+    try await withTempPath { path in
         let storage = try Storage(at: path.appending("first"))
         let users = try storage.container(for: User.self)
         try users.insert(User(name: "Tony"))
@@ -47,7 +47,7 @@ test.case("container first") {
 }
 
 test.case("container select") {
-    try withTempPath { path in
+    try await withTempPath { path in
         let storage = try Storage(at: path.appending("select"))
         let users = try storage.container(for: User.self)
         let tonies = [
@@ -64,7 +64,7 @@ test.case("container select") {
 }
 
 test.case("container remove") {
-    try withTempPath { path in
+    try await withTempPath { path in
         let storage = try Storage(at: path.appending("remove"))
         let users = try storage.container(for: User.self)
         let tonies = [
@@ -81,7 +81,7 @@ test.case("container remove") {
 }
 
 test.case("container update") {
-    try withTempPath { path in
+    try await withTempPath { path in
         let storage = try Storage(at: path.appending("update"))
         let users = try storage.container(for: User.self)
         let tonies = [

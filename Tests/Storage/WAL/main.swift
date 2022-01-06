@@ -7,7 +7,7 @@ test.case("wal init") {
         var id: String
         let name: String
     }
-    try withTempPath { path in
+    try await withTempPath { path in
         let wal = try File(name: "log", at: path)
         try wal.create()
         _ = try WAL.Reader<User>(from: wal, decoder: TestCoder())
