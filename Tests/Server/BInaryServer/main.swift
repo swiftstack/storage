@@ -27,8 +27,8 @@ func createStorage(at path: Path) async throws -> SharedStorage {
     await shared.registerProcedure(
         name: "test",
         arguments: Arguments.self,
-        requires: Test.self)
-    { arguments, con in
+        requires: Test.self
+    ) { arguments, _ in
         let name = arguments.username
         return container.first(where: \.name, equals: name)
     }
@@ -50,7 +50,7 @@ test("BinaryProtocol") {
 
                 let request: BinaryProtocol.Request = .rpc(
                     name: "test",
-                    arguments: ["username":"test"])
+                    arguments: ["username": "test"])
                 let result = await server.handle(request)
                 try await result.encode(to: output)
 
@@ -103,7 +103,7 @@ test("BinaryFullStack") {
 
             let request: BinaryProtocol.Request = .rpc(
                 name: "test",
-                arguments: ["username":"test"])
+                arguments: ["username": "test"])
             try await request.encode(to: stream)
             try await stream.flush()
 

@@ -51,7 +51,8 @@ struct WAL {
             if !Directory.isExists(at: file.location) {
                 try Directory.create(at: file.location)
             }
-            let stream = try file.open(flags: [.write, .create, .append]).outputStream
+            let stream = try file.open(flags: [.write, .create, .append])
+                .outputStream
             self.init(to: stream, encoder: encoder)
         }
 

@@ -61,7 +61,7 @@ final class HTTPServer {
             case .missingDecoder: return Response(status: .badRequest)
             }
         case let error as DecodingError:
-            await Log.error("[http] decoding error: \(error.localizedDescription)")
+            await Log.error("[http] decoding error: \(error)")
             return Response(status: .badRequest)
         default:
             await Log.error("[http] unhandled exception: \(error)")

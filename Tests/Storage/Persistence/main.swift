@@ -26,10 +26,10 @@ test("container write log") {
             try container.insert(user)
             try container.insert(guest)
             try container.insert(admin)
-            let expected: [User.Key : Container<User>.Undo.Action] = [
-                user.id : .delete,
-                guest.id : .delete,
-                admin.id : .delete,
+            let expected: [User.Key: Container<User>.Undo.Action] = [
+                user.id: .delete,
+                guest.id: .delete,
+                admin.id: .delete,
             ]
             expect(container.undo.items.count == expected.count)
             for (key, value) in expected {
@@ -186,9 +186,10 @@ await run()
 // MARK: utils
 
 // Sort WAL records
-func id<T>(lhs: WAL.Record<T>, rhs: WAL.Record<T>) -> Bool
-    where T.Key: Comparable
-{
+func id<T>(
+    lhs: WAL.Record<T>,
+    rhs: WAL.Record<T>
+) -> Bool where T.Key: Comparable {
     switch (lhs, rhs) {
     case let (.upsert(lhse), .upsert(rhse)): return lhse.id < rhse.id
     case let (.delete(lhsk), .delete(rhsk)): return lhsk < rhsk

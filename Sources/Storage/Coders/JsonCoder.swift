@@ -9,8 +9,8 @@ public final class JsonCoder: StreamCoder {
 
     func read<T>(
         from reader: StreamReader,
-        _ body: () async throws -> T?) async throws -> T?
-    {
+        _ body: () async throws -> T?
+    ) async throws -> T? {
         do {
             let next = try await body()
             guard try await reader.consume(.lf) else {
@@ -22,18 +22,19 @@ public final class JsonCoder: StreamCoder {
         }
     }
 
-    public func next<T>(
+    public func next<T: Decodable>(
         _ type: T.Type,
         from reader: StreamReader
-    ) async throws -> T? where T: Decodable {
+    ) async throws -> T? {
         try await read(from: reader) {
             try await JSON.decode(type, from: reader)
         }
     }
 
-    public func write<T>(_ record: T, to writer: StreamWriter) async throws
-        where T: Encodable
-    {
+    public func write<T: Encodable>(
+        _ record: T,
+        to writer: StreamWriter
+    ) async throws {
         try await JSON.encode(encodable: record, to: writer)
         try await writer.write(.lf)
     }

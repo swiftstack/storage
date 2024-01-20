@@ -112,7 +112,7 @@ extension Storage.Container: PersistentContainer {
         let snapshot = File(name: name, at: path)
         if snapshot.isExists {
             let reader = try Snapshot.Reader<T>(from: snapshot, decoder: coder)
-            let _ = try await reader.readHeader()
+            _ = try await reader.readHeader()
             while let next = try await reader.readNext() {
                 items[next.id] = next
             }

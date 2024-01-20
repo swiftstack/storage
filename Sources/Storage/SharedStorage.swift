@@ -60,8 +60,8 @@ public actor SharedStorage {
 
     public func call(
         _ function: String,
-        using decoder: Decoder? = nil) async throws -> Result
-    {
+        using decoder: Decoder? = nil
+    ) async throws -> Result {
         return try await syncronized {
             return try procedures.call(function, using: decoder)
         }
@@ -72,8 +72,8 @@ extension SharedStorage {
     public func registerProcedure<T: Entity>(
         name: String,
         requires container: T.Type,
-        body: @escaping (Storage.Container<T>) throws -> Result)
-    {
+        body: @escaping (Storage.Container<T>) throws -> Result
+    ) {
         procedures.register(
             name: name,
             requires: container,
@@ -84,8 +84,8 @@ extension SharedStorage {
         name: String,
         arguments: Arguments.Type,
         requires container: T.Type,
-        body: @escaping (Arguments, Storage.Container<T>) throws -> Result)
-    {
+        body: @escaping (Arguments, Storage.Container<T>) throws -> Result
+    ) {
         procedures.register(
             name: name,
             arguments: arguments,

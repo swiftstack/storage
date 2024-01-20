@@ -4,7 +4,7 @@ import FileSystem
 public class Storage {
     public typealias Key = String
 
-    var containers: [Key : PersistentContainer] = [:]
+    var containers: [Key: PersistentContainer] = [:]
 
     let path: Path
     let coder: StreamCoder
@@ -32,18 +32,18 @@ extension Storage {
         case incompatibleType = "the container was created for another type"
     }
 
-    public func container<T>(for type: T.Type) throws -> Container<T>
-        where T: AnyObject & Codable
-    {
+    public func container<T: AnyObject & Codable>(
+        for type: T.Type
+    ) throws -> Container<T> {
         throw Error.invalidKind
     }
 
-    public func container<T>(for type: T.Type) throws -> Container<T>
-        where T: Codable
-    {
+    public func container<T: Codable>(
+        for type: T.Type
+    ) throws -> Container<T> {
         switch containers[Key(for: type)] {
         case .some(let container as Container<T>): return container
-        case .some(_): throw Error.incompatibleType
+        case .some: throw Error.incompatibleType
         case .none: return createContainer(for: type)
         }
     }

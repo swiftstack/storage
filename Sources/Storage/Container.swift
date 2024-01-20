@@ -89,22 +89,25 @@ extension Storage.Container {
 }
 
 extension Storage.Container {
-    public func first<C>(where key: KeyPath<T, C>, equals value: C) -> T?
-        where C: Equatable
-    {
-        return items.values.first(where: { $0[keyPath: key] == value })
+    public func first<C: Equatable>(
+        where key: KeyPath<T, C>,
+        equals value: C
+    ) -> T? {
+        items.values.first(where: { $0[keyPath: key] == value })
     }
 
-    public func select<C>(where key: KeyPath<T, C>, equals value: C) -> [T]
-        where C: Equatable
-    {
-        return items.values.filter({ $0[keyPath: key] == value })
+    public func select<C: Equatable>(
+        where key: KeyPath<T, C>,
+        equals value: C
+    ) -> [T] {
+        items.values.filter({ $0[keyPath: key] == value })
     }
 
-    public func remove<C>(where key: KeyPath<T, C>, equals value: C) -> [T]
-        where C: Equatable
-    {
-        return items.values.compactMap { item in
+    public func remove<C: Equatable>(
+        where key: KeyPath<T, C>,
+        equals value: C
+    ) -> [T] {
+        items.values.compactMap { item in
             guard item[keyPath: key] == value else {
                 return nil
             }

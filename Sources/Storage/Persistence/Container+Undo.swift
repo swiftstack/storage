@@ -4,7 +4,7 @@ extension Storage.Container {
             case delete
             case restore(Entity)
         }
-        var items: [Entity.Key : Action] = [:]
+        var items: [Entity.Key: Action] = [:]
 
         mutating func append(key: Entity.Key, action: Action) {
             guard items[key] == nil else {

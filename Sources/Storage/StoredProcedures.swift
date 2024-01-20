@@ -3,7 +3,7 @@ public typealias StoredProcedure = (Decoder?) throws -> Result
 
 public final class StoredProcedures {
     let storage: Storage
-    var items: [String : StoredProcedure]
+    var items: [String: StoredProcedure]
 
     public enum Error: String, Swift.Error {
         case notFound = "procedure not found"
@@ -18,8 +18,8 @@ public final class StoredProcedures {
     public func register<T: Entity>(
         name: String,
         requires container: T.Type,
-        body: @escaping (Storage.Container<T>) throws -> Result)
-    {
+        body: @escaping (Storage.Container<T>) throws -> Result
+    ) {
         items[name] = { [unowned self] _ in
             let container = try self.storage.container(for: container)
             return try body(container)
@@ -30,8 +30,8 @@ public final class StoredProcedures {
         name: String,
         arguments: Arguments.Type,
         requires container: T.Type,
-        body: @escaping (Arguments, Storage.Container<T>) throws -> Result)
-    {
+        body: @escaping (Arguments, Storage.Container<T>) throws -> Result
+    ) {
         func unwrapDecoder(_ decoder: Decoder?) throws -> Decoder {
             guard let decoder = decoder else {
                 throw Error.missingDecoder
@@ -48,8 +48,8 @@ public final class StoredProcedures {
 
     public func call(
         _ name: String,
-        using decoder: Decoder?) throws -> Result
-    {
+        using decoder: Decoder?
+    ) throws -> Result {
         switch items[name] {
         case .none: throw Error.notFound
         case .some(let function): return try function(decoder)

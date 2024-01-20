@@ -36,8 +36,11 @@ public class Server {
         }
         let binaryServer = try BinaryServer(for: storage, at: host, on: port)
         _ = Task.detached {
-            do { try await binaryServer.start() }
-            catch { await self.onError(error) }
+            do {
+                try await binaryServer.start()
+            } catch {
+                await self.onError(error)
+            }
         }
         self.binaryServer = binaryServer
     }
@@ -51,8 +54,11 @@ public class Server {
         }
         let httpServer = try HTTPServer(for: storage, at: host, on: port)
         _ = Task.detached {
-            do { try await httpServer.start() }
-            catch { await self.onError(error) }
+            do {
+                try await httpServer.start()
+            } catch {
+                await self.onError(error)
+            }
         }
         self.httpServer = httpServer
     }

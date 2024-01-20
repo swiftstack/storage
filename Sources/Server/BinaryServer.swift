@@ -30,8 +30,8 @@ final class BinaryServer {
 
     func handleBinaryConnection(
         input: StreamReader,
-        output: StreamWriter) async throws
-    {
+        output: StreamWriter
+    ) async throws {
         while try await input.cache(count: 1) {
             let request = try await BinaryProtocol.Request.decode(from: input)
             let response = await handle(request)
@@ -40,7 +40,9 @@ final class BinaryServer {
         }
     }
 
-    func handle(_ request: BinaryProtocol.Request) async -> BinaryProtocol.Response {
+    func handle(
+        _ request: BinaryProtocol.Request
+    ) async -> BinaryProtocol.Response {
         do {
             switch request {
             case .rpc(let function, let arguments):
@@ -49,7 +51,9 @@ final class BinaryServer {
                 switch result {
                 case .some(let result):
                     return .output({ writer in
-                        try await MessagePack.encode(encodable: result, to: writer)
+                        try await MessagePack.encode(
+                            encodable: result,
+                            to: writer)
                     })
                 case .none:
                     return .error(.functionNotFound)
