@@ -30,22 +30,22 @@ let package = Package(
         .target(
             name: "Server",
             dependencies: [
-                "Event",
-                "Storage",
-                "Time",
-                "FileSystem",
-                "MessagePack",
-                "HTTP",
-                "Log",
+                .target(name: "Storage"),
+                .product(name: "Event", package: "event"),
+                .product(name: "Time", package: "time"),
+                .product(name: "FileSystem", package: "filesystem"),
+                .product(name: "MessagePack", package: "messagepack"),
+                .product(name: "HTTP", package: "http"),
+                .product(name: "Log", package: "log"),
             ]),
         .target(
             name: "Storage",
             dependencies: [
-                "IPC",
-                "FileSystem",
-                "MessagePack",
-                "Time",
-                "JSON",
+                .product(name: "IPC", package: "ipc"),
+                .product(name: "FileSystem", package: "filesystem"),
+                .product(name: "MessagePack", package: "messagepack"),
+                .product(name: "Time", package: "time"),
+                .product(name: "JSON", package: "json"),
             ]),
     ]
 )
@@ -74,7 +74,13 @@ func addTest(target: String, name: String) {
     package.targets.append(
         .executableTarget(
             name: "Tests/\(target)/\(name)",
-            dependencies: ["Server", "Storage", "Event", "IPC", "Test"],
+            dependencies: [
+                .target(name: "Server"),
+                .target(name: "Storage"),
+                .product(name: "Event", package: "event"),
+                .product(name: "IPC", package: "ipc"),
+                .product(name: "Test", package: "test"),
+            ],
             path: "Tests/\(target)/\(name)"))
 }
 
@@ -120,6 +126,6 @@ extension Package.Dependency {
     static func package(name: String, source: Source) -> Package.Dependency {
         return source == .local
             ? .package(name: name, path: source.url(for: name))
-            : .package(name: name, url: source.url(for: name), .branch("dev"))
+            : .package(url: source.url(for: name), branch: "dev")
     }
 }
