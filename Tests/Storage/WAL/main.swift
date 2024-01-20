@@ -2,7 +2,7 @@ import Test
 import FileSystem
 @testable import Storage
 
-test.case("wal init") {
+test("wal init") {
     struct User: Entity, Equatable {
         var id: String
         let name: String
@@ -14,7 +14,7 @@ test.case("wal init") {
     }
 }
 
-test.case("wal write") {
+test("wal write") {
     struct User: Entity, Equatable {
         var id: String
         let name: String
@@ -48,7 +48,7 @@ test.case("wal write") {
     }
 }
 
-test.case("wal restore") {
+test("wal restore") {
     struct User: Entity, Equatable {
         let id: Int
         let name: String
@@ -92,4 +92,4 @@ test.case("wal restore") {
     }
 }
 
-test.run()
+await run()

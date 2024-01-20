@@ -3,7 +3,7 @@ import FileSystem
 
 @testable import Storage
 
-test.case("container write log") {
+test("container write log") {
     struct User: Entity, Equatable {
         let name: String
 
@@ -63,7 +63,7 @@ test.case("container write log") {
     }
 }
 
-test.case("container recovery from log") {
+test("container recovery from log") {
     struct User: Entity, Equatable {
         let name: String
         var id: String {
@@ -107,7 +107,7 @@ test.case("container recovery from log") {
     }
 }
 
-test.case("container snapshot") {
+test("container snapshot") {
     struct User: Entity {
         let name: String
         var id: String {
@@ -147,7 +147,7 @@ test.case("container snapshot") {
     }
 }
 
-test.case("container snapshot without wal") {
+test("container snapshot without wal") {
     struct User: Entity {
         let name: String
         var id: String {
@@ -181,7 +181,7 @@ test.case("container snapshot without wal") {
     }
 }
 
-test.run()
+await run()
 
 // MARK: utils
 

@@ -17,7 +17,7 @@ struct User: Entity, Equatable, Comparable {
     }
 }
 
-test.case("container init") {
+test("container init") {
     try await withTempPath { path in
         let storage = try Storage(at: path.appending("init"))
         let users = try storage.container(for: User.self)
@@ -25,7 +25,7 @@ test.case("container init") {
     }
 }
 
-test.case("container insert") {
+test("container insert") {
     try await withTempPath { path in
         let storage = try Storage(at: path.appending("insert"))
         let users = try storage.container(for: User.self)
@@ -35,7 +35,7 @@ test.case("container insert") {
     }
 }
 
-test.case("container first") {
+test("container first") {
     try await withTempPath { path in
         let storage = try Storage(at: path.appending("first"))
         let users = try storage.container(for: User.self)
@@ -46,7 +46,7 @@ test.case("container first") {
     }
 }
 
-test.case("container select") {
+test("container select") {
     try await withTempPath { path in
         let storage = try Storage(at: path.appending("select"))
         let users = try storage.container(for: User.self)
@@ -63,7 +63,7 @@ test.case("container select") {
     }
 }
 
-test.case("container remove") {
+test("container remove") {
     try await withTempPath { path in
         let storage = try Storage(at: path.appending("remove"))
         let users = try storage.container(for: User.self)
@@ -80,7 +80,7 @@ test.case("container remove") {
     }
 }
 
-test.case("container update") {
+test("container update") {
     try await withTempPath { path in
         let storage = try Storage(at: path.appending("update"))
         let users = try storage.container(for: User.self)
@@ -105,4 +105,4 @@ test.case("container update") {
     }
 }
 
-test.run()
+await run()

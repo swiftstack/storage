@@ -24,16 +24,16 @@ func createStorage(at path: Path) async throws -> SharedStorage {
     await shared.registerProcedure(
         name: "test",
         arguments: Arguments.self,
-        requires: Test.self)
-    { arguments, container in
+        requires: Test.self
+    ) { arguments, container in
         let name = arguments.username
         return container.first(where: \.name, equals: name)
     }
     return shared
 }
 
-test.case("HTTPHandler") {
-    asyncTask {
+test("HTTPHandler") {
+    Task {
         await scope {
             try await withTempPath { path in
                 let storage = try await createStorage(at: path)
@@ -50,7 +50,8 @@ test.case("HTTPHandler") {
                     function: "test")
                 let body = try await response.readBody(as: UTF8.self)
                 expect(body == "{\"id\":\"1\",\"name\":\"test\"}")
-                let user = try await HTTP.Coder.decode(Test.self, from: response)
+                let user = try await HTTP.Coder
+                    .decode(Test.self, from: response)
                 expect(user == Test(id: "1", name: "test"))
             }
         }
@@ -61,10 +62,10 @@ test.case("HTTPHandler") {
     await loop.run()
 }
 
-test.case("HTTPFullStask") {
+test("HTTPFullStask") {
     let condition = Condition()
 
-    asyncTask {
+    Task {
         await scope {
             try await withTempPath { path in
                 let storage = try await createStorage(at: path)
@@ -81,15 +82,17 @@ test.case("HTTPFullStask") {
         }
     }
 
-    asyncTask {
+    Task {
         await condition.wait()
 
         await scope {
             let client = HTTP.Client(host: "127.0.0.1", port: 4002)
-            let response = try await client.get(path: "/call/test?username=test")
+            let response = try await client
+                .get(path: "/call/test?username=test")
             let body = try await response.readBody(as: UTF8.self)
             expect(body == "{\"id\":\"1\",\"name\":\"test\"}")
-            let user = try await HTTP.Coder.decode(Test.self, from: response)
+            let user = try await HTTP.Coder
+                .decode(Test.self, from: response)
             expect(user == Test(id: "1", name: "test"))
         }
 
@@ -99,4 +102,4 @@ test.case("HTTPFullStask") {
     await loop.run()
 }
 
-test.run()
+await run()

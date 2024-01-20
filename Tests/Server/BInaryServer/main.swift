@@ -35,8 +35,8 @@ func createStorage(at path: Path) async throws -> SharedStorage {
     return shared
 }
 
-test.case("BinaryProtocol") {
-    asyncTask {
+test("BinaryProtocol") {
+    Task {
         await scope {
             try await withTempPath { path in
                 let storage = try await createStorage(at: path)
@@ -55,7 +55,8 @@ test.case("BinaryProtocol") {
                 try await result.encode(to: output)
 
                 let input = InputByteStream(output.bytes)
-                let response = try await BinaryProtocol.Response.decode(from: input)
+                let response = try await BinaryProtocol.Response
+                    .decode(from: input)
                 guard case .input(let stream) = response else {
                     fail("invalid response")
                     return
@@ -72,10 +73,10 @@ test.case("BinaryProtocol") {
     await loop.run()
 }
 
-test.case("BinaryFullStack") {
+test("BinaryFullStack") {
     let condition = Condition()
 
-    asyncTask {
+    Task {
         await scope {
             try await withTempPath { path in
                 let storage = try await createStorage(at: path)
@@ -92,7 +93,7 @@ test.case("BinaryFullStack") {
         }
     }
 
-    asyncTask {
+    Task {
         await condition.wait()
 
         await scope {
@@ -106,7 +107,8 @@ test.case("BinaryFullStack") {
             try await request.encode(to: stream)
             try await stream.flush()
 
-            let response = try await BinaryProtocol.Response.decode(from: stream)
+            let response = try await BinaryProtocol.Response
+                .decode(from: stream)
             guard case .input(let stream) = response else {
                 fail("invalid response")
                 return
@@ -121,4 +123,4 @@ test.case("BinaryFullStack") {
     await loop.run()
 }
 
-test.run()
+await run()

@@ -3,7 +3,7 @@ import FileSystem
 
 @testable import Storage
 
-test.case("init") {
+test("init") {
     try await withTempPath { path in
         _ = try Storage(at: path)
     }
@@ -17,7 +17,7 @@ final class Class: Entity {
     }
 }
 
-test.case("ClassType") {
+test("ClassType") {
     try await withTempPath { path in
         let storage = try Storage(at: path)
         expect(throws: Storage.Error.invalidKind) {
@@ -26,7 +26,7 @@ test.case("ClassType") {
     }
 }
 
-test.case("Storage") {
+test("Storage") {
     try await withTempPath { path in
         let storage = try Storage(at: path)
         struct User: Entity {
@@ -43,7 +43,7 @@ test.case("Storage") {
     }
 }
 
-test.case("storage.isDirty") {
+test("storage.isDirty") {
     try await withTempPath { path in
         let storage = try Storage(at: path)
         struct User: Entity {
@@ -55,7 +55,7 @@ test.case("storage.isDirty") {
     }
 }
 
-test.case("Container") {
+test("Container") {
     try await withTempPath { path in
         let storage = try Storage(at: path)
         struct User: Entity {
@@ -71,4 +71,4 @@ test.case("Container") {
     }
 }
 
-test.run()
+await run()

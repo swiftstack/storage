@@ -4,13 +4,13 @@ import FileSystem
 
 @testable import Storage
 
-test.case("init") {
+test("init") {
     try await withTempPath { path in
         _ = try Storage(at: path)
     }
 }
 
-test.case("SharedStorage") {
+test("SharedStorage") {
     struct Counter: Codable, Equatable, Entity {
         let id: String
         var value: Int
@@ -43,7 +43,7 @@ test.case("SharedStorage") {
                 return container.get("counter")
             }
 
-            asyncTask {
+            Task {
                 await scope {
                     let result = try await shared.call("increment")
                     guard let counter = result as? Counter else {
@@ -54,7 +54,7 @@ test.case("SharedStorage") {
                 }
             }
 
-            let handle = asyncTask {
+            await Task {
                 await scope {
                     let result = try await shared.call("increment")
                     guard let counter = result as? Counter else {
@@ -63,15 +63,15 @@ test.case("SharedStorage") {
                     }
                     expect(counter == Counter(id: "counter", value: 2))
                 }
-            }
-
-            try await handle.value
+            }.value
         }
 
         await scope {
             let walDirectory = try path.appending("Counter")
             let walFile = try File(name: "log", at: walDirectory)
-            let reader = try WAL.Reader<Counter>(from: walFile, decoder: TestCoder())
+            let reader = try WAL.Reader<Counter>(
+                from: walFile,
+                decoder: TestCoder())
             var records = [WAL.Record<Counter>]()
             while let record = try await reader.readNext() {
                 records.append(record)
@@ -82,4 +82,4 @@ test.case("SharedStorage") {
     }
 }
 
-test.run()
+await run()

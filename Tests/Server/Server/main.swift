@@ -6,7 +6,7 @@ import MessagePack
 
 @testable import Server
 
-test.case("server") {
+test("server") {
     try await withTempPath { path in
         let storage = try Storage(at: path)
         let sharedStorage = SharedStorage(for: storage)
@@ -14,4 +14,4 @@ test.case("server") {
     }
 }
 
-test.run()
+await run()
